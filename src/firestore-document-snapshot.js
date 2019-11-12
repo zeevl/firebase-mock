@@ -2,7 +2,7 @@
 
 var _ = require('./lodash');
 
-function MockFirestoreDocumentSnapshot (id, ref, data) {
+function MockFirestoreDocumentSnapshot(id, ref, data) {
   this.id = id;
   this.ref = ref;
   this._snapshotdata = _.cloneDeep(data) || null;
@@ -10,9 +10,13 @@ function MockFirestoreDocumentSnapshot (id, ref, data) {
     return _.cloneDeep(this._snapshotdata);
   };
   this.exists = this._snapshotdata !== null;
+  this.metadata = {
+    fromCache: true,
+    hasPendingWrites: false
+  };
 }
 
-MockFirestoreDocumentSnapshot.prototype.get = function (path) {
+MockFirestoreDocumentSnapshot.prototype.get = function(path) {
   if (!path || !this.exists) return undefined;
 
   var parts = path.split('.');
