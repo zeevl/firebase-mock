@@ -85,40 +85,35 @@
       "name_type": "string",
       "complex": {
         "name": "a"
-      },
-      "array": [
-        "a", "b"
-      ]
+      }
     },
     "b": {
       "name": "b",
       "name_type": "string",
+      "array": ["x"],
       "complex": {
         "name": "b"
-      },
-      "array": [
-        "a", "c"
-      ]
+      }
     },
     "c": {
       "name": "c",
       "name_type": "string",
+      "array": ["y"],
       "complex": {
         "name": "c"
-      },
-      "array": [
-        "b", "c"
-      ]
+      }
     },
     "1": {
       "name": 1,
       "name_type": "number",
+      "array": ["xx"],
       "complex": {
         "name": 1
       }
     },
     "2": {
       "name": 2,
+      "array": ["x", "y"],
       "name_type": "number",
       "complex": {
         "name": 2
@@ -128,7 +123,8 @@
       "name": 3,
       "name_type": "number",
       "complex": {
-        "name": 3
+        "name": 3,
+        "array": ["x"]
       }
     }
   },
