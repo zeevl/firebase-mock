@@ -111,6 +111,12 @@ describe('DataSnapshot', function () {
       expect(child.val()).to.equal(null);
     });
 
+    it('uses null when there is no child data with multiple paths', function () {
+      var parent = new Snapshot(ref);
+      var child = parent.child('key/value');
+      expect(child.val()).to.equal(null);
+    });
+
     it('passes the priority', function () {
       var parent = new Snapshot(ref);
       ref.child('key').setPriority(10);
@@ -195,6 +201,7 @@ describe('DataSnapshot', function () {
       var snapshot = new Snapshot(ref, {key: {foo: 'bar'}});
       expect(snapshot.hasChild('key/foo')).to.equal(true);
       expect(snapshot.hasChild('key/bar')).to.equal(false);
+      expect(snapshot.hasChild('foo/key')).to.equal(false);
     });
 
   });
