@@ -466,9 +466,16 @@ describe('MockFirestoreDocument', function () {
 
   describe('#onSnapshot', function () {
     it('returns value after document is updated', function (done) {
+      // onSnapshot calls immediately with the current state;
+      // we only care about the updated..
+      var first = true;
       doc.onSnapshot(function(snap) {
-        expect(snap.get('newTitle')).to.equal('A new title');
-        done();
+        if (!first) {
+          expect(snap.get('newTitle')).to.equal('A new title');
+          done();
+        }  
+
+        first = false;
       });
       doc.update({newTitle: 'A new title'}, {setMerge: true});
       db.flush();
@@ -483,8 +490,6 @@ describe('MockFirestoreDocument', function () {
         expect(err).to.equal(error);
         done();
       });
-      doc.update({name: 'A'}, {setMerge: true});
-      doc.flush();
     });
 
     it('does not returns value when not updated', function (done) {
@@ -494,10 +499,10 @@ describe('MockFirestoreDocument', function () {
       });
       doc.update({newTitle: 'A new title'}, {setMerge: true});
       doc.flush();
-      expect(callCount).to.equal(1);
+      expect(callCount).to.equal(2);
       doc.get();
       doc.flush();
-      expect(callCount).to.equal(1);
+      expect(callCount).to.equal(2);
       done();
     });
 
@@ -508,21 +513,19 @@ describe('MockFirestoreDocument', function () {
       });
       doc.update({newTitle: 'A new title'}, {setMerge: true});
       doc.flush();
-      expect(callCount).to.equal(1);
+      expect(callCount).to.equal(2);
       doc.update({newTitle: 'A newer title'}, {setMerge: true});
       unsubscribe();
       doc.flush();
-      expect(callCount).to.equal(1);
+      expect(callCount).to.equal(2);
       done();
     });
 
     it('accepts option includeMetadataChanges', function (done) {
       doc.onSnapshot({includeMetadataChanges: true}, function(snap) {
-        expect(snap.get('newTitle')).to.equal('A new title');
+        expect(snap.get('title')).to.equal('title');
         done();
       });
-      doc.update({newTitle: 'A new title'}, {setMerge: true});
-      doc.flush();
     });
   });
 });
