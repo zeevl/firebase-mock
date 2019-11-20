@@ -29,7 +29,9 @@ FirebaseAuth.prototype.onAuthStateChanged = function (callback) {
   var currentUser = this.currentUser;
   this._auth.listeners.push({fn: callback});
 
+  callback.call(null, _.cloneDeep(currentUser));
   defer();
+
   return destroy;
 
   function destroy() {
