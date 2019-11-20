@@ -131,6 +131,6 @@ MockFirebaseUser.prototype.toJSON = function() {
     json.providerData.push(entry.toJSON());
   }
   return json;
-}
+};
 
 module.exports = MockFirebaseUser;
