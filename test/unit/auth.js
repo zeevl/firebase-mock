@@ -244,9 +244,8 @@ describe('Auth', function () {
       ref.onAuth(spy);
       expect(spy).to.have.been.calledWith(null);
     });
-
   });
-
+  
   describe('#offAuth', function () {
 
     it('removes a callback', function () {
@@ -315,6 +314,38 @@ describe('Auth', function () {
       expect(spy.callCount).to.equal(0);
     });
 
+  });
+
+  describe('#onAuthStateChanged', function () {
+    it('is triggered when changeAuthState modifies data', function () {
+      ref.onAuthStateChanged(spy);
+      ref.changeAuthState({
+        uid: 'kato'
+      });
+      ref.flush();
+      expect(spy).to.have.been.calledWithMatch({
+        uid: 'kato'
+      });
+    });
+
+    it('is not be triggered if auth state does not change', function () {
+      ref.onAuthStateChanged(spy);
+      ref.changeAuthState({
+        uid: 'kato'
+      });
+      ref.flush();
+      spy.reset();
+      ref.changeAuthState({
+        uid: 'kato'
+      });
+      ref.flush();
+      expect(spy.called).to.equal(false);
+    });
+
+    it('synchronously triggers the callback with the current auth data', function () {
+      ref.onAuthStateChanged(spy);
+      expect(spy).to.have.been.calledWith(null);
+    });
   });
 
   describe('#createUser', function () {
