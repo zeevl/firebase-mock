@@ -163,14 +163,22 @@ MockFirestoreQuery.prototype.onSnapshot = function (optionsOrObserverOrOnNext, o
     // compare the current state to the one from when this function was created
     // and send the data to the callback if different.
     if (err === null) {
-      self.get().then(function (querySnapshot) {
-        var results = self._results();
-        if (JSON.stringify(results) !== JSON.stringify(context.data) || includeMetadataChanges || forceTrigger) {
+      if (forceTrigger) {
+        const results = self._results();
+        if (_.size(self.data) !== 0) {
           onNext(new QuerySnapshot(self.parent === null ? self : self.parent.collection(self.id), results));
-          // onNext(new QuerySnapshot(self.id, self.ref, results));
-          context.data = results;
+        } else {
+          onNext(new QuerySnapshot(self.parent === null ? self : self.parent.collection(self.id)));
         }
-      });
+      } else {
+        self.get().then(function (querySnapshot) {
+          var results = self._results();
+          if (!_.isEqual(results, context.data) || includeMetadataChanges) {
+            onNext(new QuerySnapshot(self.parent === null ? self : self.parent.collection(self.id), results));
+            context.data = results;
+          }
+        });
+      }
     } else {
       onError(err);
     }
