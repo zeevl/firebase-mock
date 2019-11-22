@@ -1,14 +1,11 @@
 'use strict';
 
 var _ = require('./lodash');
-var assert = require('assert');
 var Stream = require('stream');
 var Promise = require('rsvp').Promise;
-var autoId = require('firebase-auto-ids');
 var QuerySnapshot = require('./firestore-query-snapshot');
 var Queue = require('./queue').Queue;
 var utils = require('./utils');
-var validate = require('./validators');
 
 function MockFirestoreQuery(path, data, parent, name) {
   this.errs = {};
@@ -68,8 +65,7 @@ MockFirestoreQuery.prototype.get = function () {
   return new Promise(function (resolve, reject) {
     self._defer('get', _.toArray(arguments), function () {
       var results = self._results();
-      var limit = 0;
-
+      
       if (err === null) {
         if (_.size(self.data) !== 0) {
           resolve(new QuerySnapshot(self.parent === null ? self : self.parent.collection(self.id), results));
