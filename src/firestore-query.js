@@ -100,7 +100,7 @@ MockFirestoreQuery.prototype.where = function (property, operator, value) {
   var query;
 
   // check if unsupported operator
-  if (operator !== '==' && operator != 'array-contains') {
+  if (operator !== '==' && operator !== 'array-contains') {
     console.warn('Using unsupported where() operator for firebase-mock, returning entire dataset');
     return this;
   } else {
