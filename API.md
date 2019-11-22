@@ -117,7 +117,7 @@ function onValue (_snapshot_) {
 }
 ref.on('value', onValue);
 ref.set({
-  foo: 'bar';
+  foo: 'bar',
 });
 ref.flush();
 console.assert(ref.getData().foo === 'bar', 'data has foo');
