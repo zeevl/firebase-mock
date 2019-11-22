@@ -499,7 +499,14 @@ describe('MockFirestoreDocument', function () {
   });
 
   describe('#onSnapshot', function () {
-    it('returns value after document is updated', function (done) {
+    it('calls observer with initial state', function (done) {
+      doc.onSnapshot(function(snap) {
+        expect(snap.get('title')).to.equal('title');
+        done();
+      });
+    });
+
+    it('calls observer when document is updated', function (done) {
       // onSnapshot calls immediately with the current state;
       // we only care about the updated..
       var first = true;
@@ -513,6 +520,19 @@ describe('MockFirestoreDocument', function () {
       });
       doc.update({newTitle: 'A new title'}, {setMerge: true});
       db.flush();
+    });
+
+    it('does not call observer when no changes occur', function (done) {
+      var first = true;
+      
+      doc.onSnapshot(function(snap) {
+        if (!first) throw new Error('Observer called unexpectedly!');
+        first = false;
+      });
+
+      doc.update({title: 'title'}, {setMerge: true});
+      db.flush();
+      done();
     });
 
     it('returns error if error occured', function (done) {

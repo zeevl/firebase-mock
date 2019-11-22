@@ -1,14 +1,11 @@
 'use strict';
 
 var _ = require('./lodash');
-var assert = require('assert');
 var Stream = require('stream');
 var Promise = require('rsvp').Promise;
-var autoId = require('firebase-auto-ids');
 var QuerySnapshot = require('./firestore-query-snapshot');
 var Queue = require('./queue').Queue;
 var utils = require('./utils');
-var validate = require('./validators');
 
 function MockFirestoreQuery(path, data, parent, name) {
   this.errs = {};
@@ -68,8 +65,7 @@ MockFirestoreQuery.prototype.get = function () {
   return new Promise(function (resolve, reject) {
     self._defer('get', _.toArray(arguments), function () {
       var results = self._results();
-      var limit = 0;
-
+      
       if (err === null) {
         if (_.size(self.data) !== 0) {
           resolve(new QuerySnapshot(self.parent === null ? self : self.parent.collection(self.id), results));
@@ -163,14 +159,22 @@ MockFirestoreQuery.prototype.onSnapshot = function (optionsOrObserverOrOnNext, o
     // compare the current state to the one from when this function was created
     // and send the data to the callback if different.
     if (err === null) {
-      self.get().then(function (querySnapshot) {
-        var results = self._results();
-        if (JSON.stringify(results) !== JSON.stringify(context.data) || includeMetadataChanges || forceTrigger) {
+      if (forceTrigger) {
+        const results = self._results();
+        if (_.size(self.data) !== 0) {
           onNext(new QuerySnapshot(self.parent === null ? self : self.parent.collection(self.id), results));
-          // onNext(new QuerySnapshot(self.id, self.ref, results));
-          context.data = results;
+        } else {
+          onNext(new QuerySnapshot(self.parent === null ? self : self.parent.collection(self.id)));
         }
-      });
+      } else {
+        self.get().then(function (querySnapshot) {
+          var results = self._results();
+          if (!_.isEqual(results, context.data) || includeMetadataChanges) {
+            onNext(new QuerySnapshot(self.parent === null ? self : self.parent.collection(self.id), results));
+            context.data = results;
+          }
+        });
+      }
     } else {
       onError(err);
     }

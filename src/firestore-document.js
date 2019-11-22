@@ -220,7 +220,7 @@ MockFirestoreDocument.prototype.onSnapshot = function (optionsOrObserverOrOnNext
     // compare the current state to the one from when this function was created
     // and send the data to the callback if different.
     if (err === null) {
-      if (JSON.stringify(self.data) !== JSON.stringify(context.data) || includeMetadataChanges || forceTrigger) {
+      if (!_.isEqual(self.data, context.data) || includeMetadataChanges || forceTrigger) {
         onNext(new DocumentSnapshot(self.id, self.ref, self._getData()));
         context.data = self._getData();
       }
