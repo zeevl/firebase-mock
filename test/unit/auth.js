@@ -245,9 +245,8 @@ describe('Auth', function () {
       expect(spy).to.have.been.calledWith(null);
     });
   });
-  
-  describe('#offAuth', function () {
 
+  describe('#offAuth', function () {
     it('removes a callback', function () {
       ref.onAuth(spy);
       ref.changeAuthState({
