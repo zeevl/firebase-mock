@@ -36,7 +36,7 @@ MockFirebaseUser.msg_tokenIssuedInTheFuture =
 MockFirebaseUser.prototype.clone = function () {
   var user = new MockFirebaseUser(this._auth, this);
   user._idtoken = this._idtoken;
-  user.customClaims = this.customClaims;
+  user.customClaims = _.cloneDeep(this.customClaims);
   return user;
 };
 

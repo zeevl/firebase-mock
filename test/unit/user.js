@@ -70,6 +70,17 @@ describe('User', function() {
     });
   });
 
+  describe('#clone', function() {
+    it('deep copies custom claims', () => {
+      const ogClaims = { claim1: 'value1' };
+      const claims = _cloneDeep(ogClaims);
+      const u1 = new User(auth, { customClaims: claims });
+      const u2 = u1.clone();
+      u2.customClaims.claim1 = 'value2';
+      expect(u1.customClaims).to.deep.equal(ogClaims);
+    });
+  });
+
   describe('#delete', function() {
     it('should delete user', function() {
       return auth.createUser({
