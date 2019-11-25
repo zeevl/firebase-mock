@@ -15,6 +15,7 @@ Only `MockFirebase` methods are included here. For details on normal Firebase AP
   - [`changeAuthState(user)`](#changeauthstateuser---undefined)
   - [`getUserByEmail(email)`](#getuserbyemailemail---promiseobject)
   - [`getUser(uid)`](#getuseruid---promiseobject)
+  - [`updateUser(user)`](#updateuseruser---promiseobject)
 - [Server Timestamps](#server-timestamps)
   - [`setClock(fn)`](#firebasesetclockfn---undefined)
   - [`restoreClock()`](#firebasesetclockfn---undefined)
@@ -219,6 +220,12 @@ Finds a user previously created with [`createUser`](https://www.firebase.com/doc
 ##### `getUser(uid)` -> `Promise<Object>`
 
 Finds a user previously created with [`createUser`](https://www.firebase.com/docs/web/api/firebase/createuser.html). If no user was created with the specified `email`, the promise is rejected.
+
+##### `updateUser(user)` -> `Promise<Object>`
+
+Replace the existing user with a new one, by matching uid. Throws an
+error If no user exists whose uid matches the given user's uid. Returns
+the updated user.
 
 ## Server Timestamps
 

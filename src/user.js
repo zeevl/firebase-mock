@@ -142,6 +142,9 @@ MockFirebaseUser.prototype._refreshIdToken = function () {
   this._tokenValidity.issuedAtTime = new Date();
   this._tokenValidity.expirationTime = defaultExpirationTime(new Date());
   this._idtoken = Math.random().toString();
+  return this._auth.updateUser(this)
+    .then(() => this.getIdTokenResult())
+    .catch(() => this.getIdTokenResult());
 };
 
 /** Create a user's internal token validity store

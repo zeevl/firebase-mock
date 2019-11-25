@@ -377,18 +377,33 @@ describe('Auth', function () {
     });
 
     it('creates a new user with preset additional attributes', function () {
-      ref.createUser({
-        uid: 'uid1',
+      const uid = 'uid1';
+      const now = new Date().getTime();
+      const authTime = new Date(now - 1);
+      const issuedAtTime = new Date(now);
+      const expirationTime = new Date(now + 1);
+      ref.autoFlush();
+      return ref.createUser({
+        uid: uid,
         email: 'new1@new1.com',
         password: 'new1',
         displayName: 'new user 1',
         emailVerified: true,
-      }, spy);
-      ref.flush();
-      return Promise.all([
-        expect(ref.getUser('uid1')).to.eventually.have.property('displayName', 'new user 1'),
-        expect(ref.getUser('uid1')).to.eventually.have.property('emailVerified', true),
-      ]);
+        _tokenValidity: {
+          authTime: authTime,
+          issuedAtTime: issuedAtTime,
+          expirationTime: expirationTime,
+        },
+      }).then(() => Promise.all([
+        expect(ref.getUser(uid)).to.eventually.have.property('displayName', 'new user 1'),
+        expect(ref.getUser(uid)).to.eventually.have.property('emailVerified', true),
+        expect(ref.getUser(uid).then(u => u.getIdTokenResult()).then(t => t.authTime))
+          .to.eventually.equal(authTime.toISOString()),
+        expect(ref.getUser(uid).then(u => u.getIdTokenResult()).then(t => t.issuedAtTime))
+          .to.eventually.equal(issuedAtTime.toISOString()),
+        expect(ref.getUser(uid).then(u => u.getIdTokenResult()).then(t => t.expirationTime))
+          .to.eventually.equal(expirationTime.toISOString()),
+        ]));
     });
 
     it('fails if credentials is not an object', function () {
@@ -860,7 +875,113 @@ describe('Auth', function () {
         })).to.be.rejectedWith(Error, 'custom error');
       });
     });
+  });
 
+
+  describe('#updateUser', () => {
+
+    beforeEach(() => {
+      ref.autoFlush();
+    });
+
+    it('should replace the existing user', () => {
+      const uid = 123;
+      const newUser = new User(ref, {
+        uid: uid,
+        email: 'test2@example.com',
+        providerId: 'test-provider-id',
+      });
+      return ref.createUser({
+        uid: uid,
+        email: 'test@example.com',
+      }).then(() => ref.updateUser(newUser))
+        .then(() => ref.getUser(uid))
+        .then(updatedUser => expect(updatedUser).to.deep.equal(newUser));
+    });
+
+    it('should select by uid', () => {
+      const uid = 456;
+      const email = 'newEmail@example.com';
+      return ref.createUser({
+        uid: 123,
+        email: 'test1@example.com',
+      }).then(u1 =>
+        ref.createUser({
+          uid: uid,
+          email: 'test2@example.com',
+        }).then(() => ref.updateUser(new User(ref, {
+          uid: uid,
+          email: email,
+        }))).then(() => Promise.all([
+          expect(ref.getUser(123)).to.eventually.deep.equal(u1),
+          expect(ref.getUser(uid).then(u => u.email))
+            .to.eventually.deep.equal(email),
+        ]))
+      );
+    });
+
+    it('should return the updated user', () => {
+      const uid = 123;
+      const email = 'test2@example.com';
+      const newUser = new User(ref, {
+        uid: uid,
+        email: email,
+      });
+      return ref.createUser({
+        uid: uid,
+        email: 'test1@example.com',
+      }).then(() => ref.updateUser(newUser))
+        .then(rtn => expect(rtn).to.deep.equal(newUser));
+    });
+
+    it('should store a referentially different user from the argument', () => {
+      const uid = 123;
+      const email = 'test2@example.com';
+      const arg = new User(ref, {
+        uid: uid,
+        email: email,
+      });
+      return ref.createUser({
+        uid: uid,
+        email: 'test1@example.com',
+      }).then(() => ref.updateUser(arg))
+        .then(() => {
+          arg.email = 'test3@example.com';
+          return ref.getUser(uid);
+        })
+        .then(newUser => newUser.email)
+        .then(newEmail => expect(newEmail).to.equal(email));
+    });
+
+    it('should reject if the user does not exist', () => {
+      return expect(ref.updateUser(new User(ref, {
+        uid: 123,
+        email: 'test@example.com',
+      }))).to.be.rejectedWith('Tried to update a nonexistent user');
+    });
+
+    it('should wait for flush', () => {
+      const uid = 123;
+      const oldEmail = 'test1@example.com';
+      const newEmail = 'test2@example.com';
+      const newUser = new User(ref, {
+        uid: uid,
+        email: newEmail,
+      });
+      ref.createUser({
+        uid: uid,
+        email: oldEmail,
+      });
+      ref.autoFlush(false);
+      ref.updateUser(newUser);
+      const emailBeforeFlush = ref.getUser(uid).then(u => u.email);
+      ref.flush();
+      const emailAfterFlush = ref.getUser(uid).then(u => u.email);
+      return Promise.all([
+        expect(emailBeforeFlush).to.eventually.equal(oldEmail),
+        expect(emailAfterFlush).to.eventually.equal(newEmail),
+      ]);
+    });
   });
 
 });

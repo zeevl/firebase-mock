@@ -357,61 +357,105 @@ describe('User', function() {
     });
 
     describe('with forceRefresh', () => {
-      it('persists the new token', () => {
-        const user = new User(auth, {
-          _tokenValidity: {
-            authTime: new Date(randomPastTimestamp()),
-          },
-        });
-        return expect(user.getIdTokenResult(true)
-          .then(_t1 => {
-            const t1 = _cloneDeep(_t1);
-            return user.getIdTokenResult(false).then(t2 =>
-              _isEqual(t1, t2)
-            );
-          })
-        ).to.eventually.equal(true);
-      });
 
-      it('should use authTime from previous token', () => {
-        const authTime = new Date(randomPastTimestamp());
-        const user = new User(auth, {
-          _tokenValidity:
-            {authTime: authTime},
-        });
-        return expect(user.getIdTokenResult(true).then(r => r.authTime))
-          .to.eventually.equal(authTime.toISOString());
-      });
-
-      it('should use current time as issuance time', () => {
-        const user = new User(auth, {
-          _tokenValidity: {
-            authTime: new Date(randomPastTimestamp()),
-          }
-        });
-        return expect(user.getIdTokenResult(true).then(r => r.issuedAtTime))
-          .to.eventually.equal(now.toISOString());
-      });
-
-      it('should expire one hour after issuance', () => {
-        const user = new User(auth, {
-          _tokenValidity: {
-            authTime: new Date(randomPastTimestamp()),
-          },
-        });
-        const expTime = new Date(now.getTime() + 3600000);
-        return expect(user.getIdTokenResult(true).then(r => r.expirationTime))
-          .to.eventually.equal(expTime.toISOString());
-      });
-
-      it('should generate a new token', () => {
+      it('should refresh the ID token', () => {
         const user = new User(auth, {_tokenValidity: {},});
-        return expect(user.getIdToken(false)
-          .then(oldToken => user.getIdTokenResult(true)
-            .then(newTokenResult => oldToken === newTokenResult.token)
-          )
-        ).to.eventually.equal(false);
+        const refreshIdToken = sinon.spy(user, '_refreshIdToken');
+        return user.getIdTokenResult(true)
+          .then(() => expect(refreshIdToken.called).to.be.true);
       });
+    });
+  });
+
+  describe('#_refreshIdToken', () => {
+
+    let now;
+    let clock;
+
+    beforeEach(() => {
+      auth.autoFlush();
+      now = randomTimestamp();
+      clock = sinon.useFakeTimers(now);
+    });
+
+    afterEach(() => {
+      clock.restore();
+    });
+
+    it('should return a new token result', () => {
+      const user = new User(auth, {_tokenValidity: {},});
+      return expect(user.getIdToken(false)
+        .then(oldToken => user._refreshIdToken()
+          .then(newTokenResult => oldToken === newTokenResult.token)
+        )
+      ).to.eventually.equal(false);
+    });
+
+    it('should persist the new token result', () => {
+      const user = new User(auth, {
+        _tokenValidity: {
+          authTime: new Date(randomPastTimestamp()),
+        },
+      });
+      return expect(user._refreshIdToken()
+        .then(_t1 => {
+          const t1 = _cloneDeep(_t1);
+          return user.getIdTokenResult().then(t2 =>
+            _isEqual(t1, t2)
+          );
+        })
+      ).to.eventually.equal(true);
+    });
+
+    it('should use the previous token\'s authTime by default', () => {
+      const authTime = new Date(randomPastTimestamp());
+      const user = new User(auth, {
+        _tokenValidity: {
+          authTime: authTime,
+        },
+      });
+      return expect(user._refreshIdToken().then(r => r.authTime))
+        .to.eventually.equal(authTime.toISOString());
+    });
+
+    it('should use current time as new issuance time by default', () => {
+      const authTime = new Date(randomPastTimestamp());
+      const user = new User(auth, {
+        _tokenValidity: {
+          authTime: authTime,
+        },
+      });
+      return expect(user._refreshIdToken().then(r => r.issuedAtTime))
+        .to.eventually.equal(new Date(now).toISOString());
+    });
+
+    it('should expire one hour after issuance by default', () => {
+      const authTime = new Date(randomPastTimestamp());
+      const user = new User(auth, {
+        _tokenValidity: {
+          authTime: authTime,
+        },
+      });
+      return expect(user._refreshIdToken().then(r => r.expirationTime))
+        .to.eventually.equal(new Date(now + 3600000).toISOString());
+    });
+
+
+    it('should update the upstream user if there is one', () => {
+      const uid = 123;
+      return auth.createUser({
+        uid: uid,
+        email: 'me@example.com',
+      }).then(user =>
+        expect(user._refreshIdToken()
+          .then(() => auth.getUser(uid))
+        ).to.eventually.deep.equal(user)
+      );
+    });
+
+    it('should accept missing upstream users', () => {
+      const user = new User(auth, {_tokenValidity: {},});
+      return expect(user._refreshIdToken()).not.to.be.rejected;
     });
   });
 });
