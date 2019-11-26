@@ -119,13 +119,11 @@ MockFirebaseUser.prototype.toJSON = function() {
     displayName: this.displayName,
     photoURL: this.photoURL,
     phoneNumber: this.phoneNumber,
-    disabled: this.disabled,
-    metadata: this.metadata && this.metadata.toJSON(),
-    passwordHash: this.passwordHash,
-    passwordSalt: this.passwordSalt,
-    customClaims: JSON.parse(JSON.stringify(this.customClaims)),
-    tokensValidAfterTime: this.tokensValidAfterTime,
   };
+  if (this.metadata) {
+    json.createdAt = this.metadata.createdAt;
+    json.lastLoginAt = this.metadata.lastLoginAt;
+  }
   json.providerData = [];
   for (const entry of this.providerData) {
     json.providerData.push(entry.toJSON());
