@@ -224,8 +224,9 @@ Finds a user previously created with [`createUser`](https://www.firebase.com/doc
 ##### `updateUser(user)` -> `Promise<Object>`
 
 Replace the existing user with a new one, by matching uid. Throws an
-error If no user exists whose uid matches the given user's uid. Returns
-the updated user.
+error If no user exists whose uid matches the given user's uid. Resolves
+with the updated user when complete. This operation is queued until the
+next flush.
 
 ## Server Timestamps
 

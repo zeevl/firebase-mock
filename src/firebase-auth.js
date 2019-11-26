@@ -95,10 +95,10 @@ FirebaseAuth.prototype.updateUser = function (newUser) {
     this._defer('updateUser', _.toArray(arguments), () => {
       const i = _.findIndex(self._auth.users, u => u.uid === newUser.uid);
       if (i === -1) {
-        return reject(new Error('Tried to update a nonexistent user'));
+        reject(new Error('Tried to update a nonexistent user'));
       } else {
         self._auth.users[i] = newUser.clone();
-        return resolve(newUser);
+        resolve(newUser);
       }
     });
   });
