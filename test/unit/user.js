@@ -140,4 +140,46 @@ describe('User', function () {
       return expect(user.getIdToken(true)).to.eventually.not.equal(token);
     });
   });
+
+  describe('#toJSON', () => {
+    describe('most fields', () => {
+      it('should be the same', () => {
+        const user = new User(auth, {});
+        const json = user.toJSON();
+        [
+          'uid',
+          'email',
+          'emailVerified',
+          'displayName',
+          'photoURL',
+          'phoneNumber',
+          'providerData',
+        ].forEach(k => expect(json[k]).to.deep.equal(user[k]));
+      });
+    });
+
+    describe('.metadata', () => {
+      it('keys should be missing if omitted', () => {
+        const user = new User(auth, {});
+        expect(user.toJSON()).not.to.haveOwnProperty('lastLoginAt');
+        expect(user.toJSON()).not.to.haveOwnProperty('createdAt');
+      });
+
+      it('should populate to lastLogin if present', () => {
+        const metadata = {
+          lastLoginAt: new Date(11).getTime().toString(10),
+        };
+        const user = new User(auth, { metadata: metadata, });
+        expect(user.toJSON().lastLoginAt).to.equal(metadata.lastLoginAt);
+      });
+
+      it('should populate to createdAt if present', () => {
+        const metadata = {
+          createdAt: new Date(12).getTime().toString(10),
+        };
+        const user = new User(auth, { metadata: metadata, });
+        expect(user.toJSON().createdAt).to.equal(metadata.createdAt);
+      });
+    });
+  });
 });
