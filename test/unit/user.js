@@ -23,6 +23,11 @@ describe('User', function() {
     clock.restore();
   });
 
+  it('should be exported', () => {
+    const firebaseMock = require('../..');
+    new firebaseMock.MockUser(this.auth, {});
+  });
+
   describe('#constructor', function() {
 
     it('should reject ID tokens that expire before the issuance time', () => {
