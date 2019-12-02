@@ -1,7 +1,7 @@
-const User = require('../../src/user');
+const MockUser = require('../../src/user');
 
 describe('API.md', () => {
-  describe('Auth example for', () => {
+  describe('Auth example for changeAuthState', () => {
 
     let ref;
     beforeEach(() => {
@@ -9,8 +9,8 @@ describe('API.md', () => {
       ref = new Authentication();
     });
 
-    it('changeAuthState works as described', () => {
-      ref.changeAuthState(new User(ref, {
+    it('works as described', () => {
+      ref.changeAuthState(new MockUser(ref, {
         uid: 'theUid',
         email: 'me@example.com',
         emailVerified: true,

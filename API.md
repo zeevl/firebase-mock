@@ -178,13 +178,14 @@ Before changing the authentication state, `changeAuthState` checks the
 `onAuthStateChanged` listeners will only be triggered if the data is not
 deeply equal.
 
-To simulate no user being authenticated, pass `null` for `user`.
-This operation is queued until the next `flush`.
+`user` should be a `MockUser` object or an object with the same fields
+as `MockUser`. To simulate no user being authenticated, pass `null` for
+`user`. This operation is queued until the next `flush`.
 
 Example:
 
 ```js
-ref.changeAuthState(new User(ref, {
+ref.changeAuthState(new MockUser(ref, {
   uid: 'theUid',
   email: 'me@example.com',
   emailVerified: true,
