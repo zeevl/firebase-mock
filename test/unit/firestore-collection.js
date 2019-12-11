@@ -370,14 +370,19 @@ describe('MockFirestoreCollection', function () {
 
   describe('#onSnapshot', function () {
     it('returns value after collection is updated', function (done) {
+      var callCount = 0;
       collection.onSnapshot(function(snap) {
+        callCount += 1;
         var names = [];
         snap.docs.forEach(function(doc) {
           names.push(doc.data().name);
         });
-        expect(names).to.contain('A');
-        expect(names).not.to.contain('a');
-        done();
+        
+        if (callCount === 2) {
+          expect(names).to.contain('A');
+          expect(names).not.to.contain('a');
+          done();  
+        }
       });
       collection.doc('a').update({name: 'A'}, {setMerge: true});
       collection.flush();
@@ -391,13 +396,19 @@ describe('MockFirestoreCollection', function () {
         snap.docs.forEach(function(doc) {
           names.push(doc.data().name);
         });
-        if (callCount === 1) {
+
+        if (callCount === 2) {
           expect(names).to.contain('A');
-        } else if (callCount === 2) {
           expect(names).not.to.contain('a');
+        }
+
+        if (callCount === 3) {
+          expect(names).to.contain('AA');
+          expect(names).not.to.contain('A');
           done();
         }
       });
+
       collection.doc('a').update({name: 'A'}, {setMerge: true});
       collection.flush();
       collection.doc('a').update({name: 'AA'}, {setMerge: true});
@@ -405,13 +416,29 @@ describe('MockFirestoreCollection', function () {
     });
 
     it('should unsubscribe', function (done) {
+      var callCount = 0;
       var unsubscribe = collection.onSnapshot(function(snap) {
-        throw new Error("This should be unsubscribed.");
+        callCount += 1;
       });
-      unsubscribe();
+
       collection.doc('a').update({name: 'A'}, {setMerge: true});
       collection.flush();
-      done();
+      
+      process.nextTick(function() {
+        expect(callCount).to.equal(2);
+
+        collection.doc('a').update({name: 'AA'}, {setMerge: true});
+        unsubscribe();
+
+        collection.flush();
+
+        process.nextTick(function() {
+          expect(callCount).to.equal(2);
+          done();
+        });
+      });
+      
+
     });
 
     it('Calls onError if error', function (done) {
