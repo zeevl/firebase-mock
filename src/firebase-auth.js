@@ -77,9 +77,7 @@ FirebaseAuth.prototype.getUser = function (uid, onComplete) {
     var user = null;
     err = err || self._validateExistingUid(uid);
     if (!err) {
-      user = _.find(self._auth.users, function(u) {
-        return u.uid == uid;
-      });
+      user = self._getUser(uid);
       if (onComplete) {
         onComplete(err, user.clone());
       }
@@ -90,6 +88,21 @@ FirebaseAuth.prototype.getUser = function (uid, onComplete) {
       }
       reject(err);
     }
+  });
+};
+
+FirebaseAuth.prototype.updateUser = function (newUser) {
+  const self = this;
+  return new Promise((resolve, reject) => {
+    this._defer('updateUser', _.toArray(arguments), () => {
+      const i = _.findIndex(self._auth.users, u => u.uid === newUser.uid);
+      if (i === -1) {
+        reject(new Error('Tried to update a nonexistent user'));
+      } else {
+        self._auth.users[i] = newUser.clone();
+        resolve(newUser);
+      }
+    });
   });
 };
 
@@ -207,6 +220,12 @@ FirebaseAuth.prototype._triggerAuthEvent = function () {
   });
 };
 
+FirebaseAuth.prototype._getUser = function (uid) {
+  return _.find(this._auth.users, function(u) {
+    return u.uid === uid;
+  });
+};
+
 FirebaseAuth.prototype.getAuth = function () {
   return this.currentUser;
 };
@@ -281,7 +300,8 @@ FirebaseAuth.prototype._createUser = function (method, credentials, onComplete) 
           phoneNumber: credentials.phoneNumber,
           emailVerified: credentials.emailVerified,
           displayName: credentials.displayName,
-          photoURL: credentials.photoURL
+          photoURL: credentials.photoURL,
+          _tokenValidity: credentials._tokenValidity
         });
         self._auth.users.push(user);
         if (onComplete) {
