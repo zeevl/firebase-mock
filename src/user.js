@@ -19,7 +19,7 @@ function MockFirebaseUser(ref, data) {
   this.emailVerified = !!data.emailVerified;
   this.isAnonymous = !!data.isAnonymous;
   this.metadata = data.metadata;
-  this.providerData = data.providerData;
+  this.providerData = data.providerData || [];
   this.providerId = data.providerId;
   this.refreshToken = data.refreshToken;
 }
@@ -121,6 +121,26 @@ MockFirebaseUser.prototype.getIdToken = function (forceRefresh) {
     }
     resolve(self._idtoken);
   });
+};
+
+MockFirebaseUser.prototype.toJSON = function() {
+  const json = {
+    uid: this.uid,
+    email: this.email,
+    emailVerified: this.emailVerified,
+    displayName: this.displayName,
+    photoURL: this.photoURL,
+    phoneNumber: this.phoneNumber,
+  };
+  if (this.metadata) {
+    json.createdAt = this.metadata.createdAt;
+    json.lastLoginAt = this.metadata.lastLoginAt;
+  }
+  json.providerData = [];
+  for (const entry of this.providerData) {
+    json.providerData.push(entry.toJSON());
+  }
+  return json;
 };
 
 MockFirebaseUser.prototype.getIdTokenResult = function (forceRefresh) {
