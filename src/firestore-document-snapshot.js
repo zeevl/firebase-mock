@@ -1,8 +1,9 @@
 'use strict';
 
 var _ = require('./lodash');
+var FieldPath = require('./firestore-field-path');
 
-function MockFirestoreDocumentSnapshot(id, ref, data) {
+function MockFirestoreDocumentSnapshot (id, ref, data) {
   this.id = id;
   this.ref = ref;
   this._snapshotdata = _.cloneDeep(data) || null;
@@ -16,10 +17,17 @@ function MockFirestoreDocumentSnapshot(id, ref, data) {
   };
 }
 
-MockFirestoreDocumentSnapshot.prototype.get = function(path) {
-  if (!path || !this.exists) return undefined;
+MockFirestoreDocumentSnapshot.prototype.get = function (field) {
+  if (!field || !this.exists) return undefined;
 
-  var parts = path.split('.');
+  var parts;
+  if (FieldPath.documentId().isEqual(field)) {
+    return this.id;
+  } else if (field instanceof FieldPath) {
+    parts = _.clone(field._path);
+  } else {
+    parts = field.split('.');
+  }
   var part = parts.shift();
   var data = this.data();
 

@@ -3,6 +3,8 @@
 var _ = require('./lodash');
 var Stream = require('stream');
 var Promise = require('rsvp').Promise;
+var autoId = require('firebase-auto-ids');
+var FieldPath = require('./firestore-field-path');
 var QuerySnapshot = require('./firestore-query-snapshot');
 var DocumentSnapshot = require('./firestore-document-snapshot');
 var Queue = require('./queue').Queue;
@@ -101,6 +103,7 @@ MockFirestoreQuery.prototype.stream = function () {
 
 MockFirestoreQuery.prototype.where = function (property, operator, value) {
   var query = this.clone();
+  var path = getPropertyPath(property);
 
   // check if unsupported operator
   if (operator !== '==' && operator !== 'array-contains') {
@@ -109,9 +112,10 @@ MockFirestoreQuery.prototype.where = function (property, operator, value) {
     if (_.size(this.data) !== 0) {
       var results = {};
       _.forEach(this.data, function(data, key) {
+        var queryable = { data: data, key: key };
         switch (operator) {
           case '==':
-            if (_.isEqual(_.get(data, property), value)) {
+            if (_.isEqual(_.get(queryable, path), value)) {
               results[key] = _.cloneDeep(data);
             }
             break;
@@ -259,6 +263,7 @@ MockFirestoreQuery.prototype._results = function () {
     return results;
   }
 
+
   var self = this;
   if (this.orderedProperties.length === 0) {
     _.forEach(this.data, function(data, key) {
@@ -276,8 +281,8 @@ MockFirestoreQuery.prototype._results = function () {
       });
     });
 
-    queryable = _.orderBy(queryable, _.map(self.orderedProperties, function(p) { return 'data.' + p; }), self.orderedDirections);
-
+    var orderBy = _.map(self.orderedProperties, getPropertyPath);
+    queryable = _.orderBy(queryable, orderBy, self.orderedDirections);
     queryable.forEach(function(q) {
       if (inRange(q.data, q.key) && (self.limited <= 0 || limit < self.limited)) {
         results[q.key] = _.cloneDeep(q.data);
@@ -312,6 +317,16 @@ MockFirestoreQuery.prototype._nextErr = function (type) {
 
 function extractName(path) {
   return ((path || '').match(/\/([^.$\[\]#\/]+)$/) || [null, null])[1];
+}
+
+function getPropertyPath(p) {
+  if (FieldPath.documentId().isEqual(p)) {
+    return 'key';
+  } else if (p instanceof FieldPath) {
+    return 'data.' + p._path.join('.');
+  } else {
+    return 'data.' + p;
+  }
 }
 
 module.exports = MockFirestoreQuery;
