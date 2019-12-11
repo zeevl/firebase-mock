@@ -316,6 +316,40 @@ describe('MockFirestoreDocument', function () {
       db.flush();
     });
 
+    it('updates an array property when using FieldValue.arrayRemove()', function (done) {
+      doc.set({
+        titles: ['title1', 'title2']
+      });
+      doc.update({
+        titles: Firestore.FieldValue.arrayRemove('title2')
+      });
+
+      doc.get().then(function (snap) {
+        expect(snap.exists).to.equal(true);
+        expect(snap.data()).to.deep.equal({titles: ['title1']});
+        done();
+      }).catch(done);
+
+      db.flush();
+    });
+
+    it('updates an array property when using FieldValue.arrayUnion()', function (done) {
+      doc.set({
+        titles: ['title1']
+      });
+      doc.update({
+        titles: Firestore.FieldValue.arrayUnion('title2')
+      });
+
+      doc.get().then(function (snap) {
+        expect(snap.exists).to.equal(true);
+        expect(snap.data()).to.deep.equal({titles: ['title1', 'title2']});
+        done();
+      }).catch(done);
+
+      db.flush();
+    });
+
     it('does not merge nested properties recursively by default', function (done) {
       doc.set({
         nested: {
@@ -460,6 +494,91 @@ describe('MockFirestoreDocument', function () {
           done();
         });
         db.flush();
+      });
+    });
+  });
+
+  describe('#onSnapshot', function () {
+    it('calls observer with initial state', function (done) {
+      doc.onSnapshot(function(snap) {
+        expect(snap.get('title')).to.equal('title');
+        done();
+      });
+    });
+
+    it('calls observer when document is updated', function (done) {
+      // onSnapshot calls immediately with the current state;
+      // we only care about the updated..
+      var first = true;
+      doc.onSnapshot(function(snap) {
+        if (!first) {
+          expect(snap.get('newTitle')).to.equal('A new title');
+          done();
+        }  
+
+        first = false;
+      });
+      doc.update({newTitle: 'A new title'}, {setMerge: true});
+      db.flush();
+    });
+
+    it('does not call observer when no changes occur', function (done) {
+      var first = true;
+      
+      doc.onSnapshot(function(snap) {
+        if (!first) throw new Error('Observer called unexpectedly!');
+        first = false;
+      });
+
+      doc.update({title: 'title'}, {setMerge: true});
+      db.flush();
+      done();
+    });
+
+    it('returns error if error occured', function (done) {
+      var error = new Error("An error occured.");
+      doc.errs.onSnapshot = error;
+      doc.onSnapshot(function(snap) {
+        throw new Error("This should not be called.");
+      }, function(err) {
+        expect(err).to.equal(error);
+        done();
+      });
+    });
+
+    it('does not returns value when not updated', function (done) {
+      var callCount = 0;
+      doc.onSnapshot(function(snap) {
+        callCount += 1;
+      });
+      doc.update({newTitle: 'A new title'}, {setMerge: true});
+      doc.flush();
+      expect(callCount).to.equal(2);
+      doc.get();
+      doc.flush();
+      expect(callCount).to.equal(2);
+      done();
+    });
+
+    it('unsubscribes', function (done) {
+      var callCount = 0;
+      var unsubscribe = doc.onSnapshot(function(snap) {
+        callCount += 1;
+      });
+      doc.update({newTitle: 'A new title'}, {setMerge: true});
+      doc.flush();
+      expect(callCount).to.equal(2);
+      doc.update({newTitle: 'A newer title'}, {setMerge: true});
+      unsubscribe();
+      doc.flush();
+      expect(callCount).to.equal(2);
+      done();
+    });
+
+    it('accepts option includeMetadataChanges', function (done) {
+      doc.onSnapshot({includeMetadataChanges: true}, function(snap) {
+        expect(snap.get('title')).to.equal('title');
+        done();
       });
     });
   });
