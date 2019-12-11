@@ -11,6 +11,10 @@ function MockFirestoreDocumentSnapshot (id, ref, data) {
     return _.cloneDeep(this._snapshotdata);
   };
   this.exists = this._snapshotdata !== null;
+  this.metadata = {
+    fromCache: true,
+    hasPendingWrites: false
+  };
 }
 
 MockFirestoreDocumentSnapshot.prototype.get = function (field) {

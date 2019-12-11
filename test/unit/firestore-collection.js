@@ -393,6 +393,58 @@ describe('MockFirestoreCollection', function () {
     });
   });
 
+  describe('#startAfter', function () {
+    var doc2Snap;
+
+    beforeEach(function () {
+        db.autoFlush();
+
+        collection = db.collection('startAfter');
+        var doc2 = collection.doc();
+
+        collection.add({a: 1});
+        doc2.set({a: 2});
+        collection.add({a: 3});
+        collection.add({a: 4});
+        collection.add({a: 5});
+
+        return doc2.get().then(function (snap) {
+          doc2Snap = snap;
+        });
+    });
+
+    it('returns data after the specified value', function () {
+      return collection
+        .orderBy('a')
+        .startAfter(doc2Snap)
+        .get()
+        .then(function(snaps) {
+          expect(snaps.size).to.equal(3);
+          expect(snaps.docs.map(function (d) { return d.data().a; })).to.deep.equal([3, 4, 5]);
+        });
+    });
+
+    it('works with limit', function () {
+      return collection
+        .orderBy('a')
+        .startAfter(doc2Snap)
+        .limit(2)
+        .get()
+        .then(function(snaps) {
+          expect(snaps.size).to.equal(2);
+          expect(snaps.docs.map(function (d) { return  d.data().a; })).to.deep.equal([3, 4]);
+        });
+    });
+
+    it('throws with no order', function () {
+      expect(
+        function () {
+          collection.startAfter(doc2Snap);
+        }
+      ).to.throw();
+    });
+  });
+
   describe('#limit', function () {
     it('allow calling limit() on collection', function() {
       expect(function() {
@@ -414,5 +466,100 @@ describe('MockFirestoreCollection', function () {
         expect(results4).to.eventually.have.property('size').to.equal(6)
       ]);
     });
+  });
+
+  describe('#onSnapshot', function () {
+    it('returns value after collection is updated', function (done) {
+      var callCount = 0;
+      collection.onSnapshot(function(snap) {
+        callCount += 1;
+        var names = [];
+        snap.docs.forEach(function(doc) {
+          names.push(doc.data().name);
+        });
+        
+        if (callCount === 2) {
+          expect(names).to.contain('A');
+          expect(names).not.to.contain('a');
+          done();  
+        }
+      });
+      collection.doc('a').update({name: 'A'}, {setMerge: true});
+      collection.flush();
+    });
+
+    it('calls callback after multiple updates', function (done) {
+      var callCount = 0;
+      collection.onSnapshot(function(snap) {
+        callCount += 1;
+        var names = [];
+        snap.docs.forEach(function(doc) {
+          names.push(doc.data().name);
+        });
+
+        if (callCount === 2) {
+          expect(names).to.contain('A');
+          expect(names).not.to.contain('a');
+        }
+
+        if (callCount === 3) {
+          expect(names).to.contain('AA');
+          expect(names).not.to.contain('A');
+          done();
+        }
+      });
+
+      collection.doc('a').update({name: 'A'}, {setMerge: true});
+      collection.flush();
+      collection.doc('a').update({name: 'AA'}, {setMerge: true});
+      collection.flush();
+    });
+
+    it('should unsubscribe', function (done) {
+      var callCount = 0;
+      var unsubscribe = collection.onSnapshot(function(snap) {
+        callCount += 1;
+      });
+
+      collection.doc('a').update({name: 'A'}, {setMerge: true});
+      collection.flush();
+      
+      process.nextTick(function() {
+        expect(callCount).to.equal(2);
+
+        collection.doc('a').update({name: 'AA'}, {setMerge: true});
+        unsubscribe();
+
+        collection.flush();
+
+        process.nextTick(function() {
+          expect(callCount).to.equal(2);
+          done();
+        });
+      });
+      
+
+    });
+
+    it('Calls onError if error', function (done) {
+      var error = new Error("An error occured.");
+      collection.errs.onSnapshot = error;
+      var callCount = 0;
+      collection.onSnapshot(function(snap) {
+        throw new Error("This should not be called.");
+      }, function(err) {
+        // onSnapshot always returns when first called and then
+        // after data changes so we get 2 calls here.
+        if (callCount == 0) {
+          callCount++;
+          return;
+        }
+        expect(err).to.equal(error);
+        done();
+      });
+      collection.doc('a').update({name: 'A'}, {setMerge: true});
+      collection.flush();
+    });
+
   });
 });

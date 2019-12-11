@@ -12,9 +12,10 @@ Only `MockFirebase` methods are included here. For details on normal Firebase AP
   - [`fakeEvent(event [, key] [, data] [, previousChild] [, priority])`](#fakeeventevent--key--data--previouschild--priority---ref)
   - [`getFlushQueue()`](#getflushqueue---array)
 - [Auth](#auth)
-  - [`changeAuthState(user)`](#changeauthstateauthdata---undefined)
-  - [`getUserByEmail(email)`](#getemailuseremail---objectnull)
-  - [`getUser(uid)`](#getemailuseremail---objectnull)
+  - [`changeAuthState(user)`](#changeauthstateuser---undefined)
+  - [`getUserByEmail(email)`](#getuserbyemailemail---promiseobject)
+  - [`getUser(uid)`](#getuseruid---promiseobject)
+  - [`updateUser(user)`](#updateuseruser---promisemockuser)
 - [Server Timestamps](#server-timestamps)
   - [`setClock(fn)`](#firebasesetclockfn---undefined)
   - [`restoreClock()`](#firebasesetclockfn---undefined)
@@ -117,7 +118,7 @@ function onValue (_snapshot_) {
 }
 ref.on('value', onValue);
 ref.set({
-  foo: 'bar';
+  foo: 'bar',
 });
 ref.flush();
 console.assert(ref.getData().foo === 'bar', 'data has foo');
@@ -169,26 +170,46 @@ ref.flush(); // added foo after null
 
 Authentication methods for simulating changes to the auth state of a Firebase reference.
 
-##### `changeAuthState(authData)` -> `undefined`
+##### `changeAuthState(user)` -> `undefined`
 
-Changes the active authentication credentials to the `authData` object. Before changing the authentication state, `changeAuthState` checks whether the `authData` object is deeply equal to the current authentication data. `onAuth` listeners will only be triggered if the data is not deeply equal. To simulate no user being authenticated, pass `null` for `authData`. This operation is queued until the next `flush`.
+Changes the active authentication credentials to the `authData` object.
+Before changing the authentication state, `changeAuthState` checks the
+`user` object against the current authentication data.
+`onAuthStateChanged` listeners will only be triggered if the data is not
+deeply equal.
 
-`authData` should adhere to the [documented schema](https://www.firebase.com/docs/web/api/firebase/onauth.html).
+`user` should be a `MockUser` object or an object with the same fields
+as `MockUser`. To simulate no user being authenticated, pass `null` for
+`user`. This operation is queued until the next `flush`.
 
 Example:
 
 ```js
-ref.changeAuthState({
+ref.changeAuthState(new MockUser(ref, {
   uid: 'theUid',
-  provider: 'github',
-  token: 'theToken',
-  expires: Math.floor(new Date() / 1000) + 24 * 60 * 60, // expire in 24 hours
-  auth: {
-    myAuthProperty: true
-  }
-});
+  email: 'me@example.com',
+  emailVerified: true,
+  displayName: 'Mr. Meeseeks',
+  phoneNumber: '+1-508-123-4567',
+  photoURL: 'https://example.com/image.png',
+  isAnonymous: false,
+  providerId: 'github',
+  providerData: [],
+  refreshToken: '123e4567-e89b-12d3-a456-426655440000',
+  metadata: {},  // firebase-mock offers limited support for this field
+  customClaims: {
+    isAdmin: true,
+    // etc.
+  },
+  _idtoken: 'theToken',
+  _tokenValidity: {
+    authTime: '2019-11-22T08:46:15Z',
+    issuedAtTime: '2019-11-22T08:46:15Z',
+    expirationTime: '2019-11-22T09:46:15Z',
+  },
+}));
 ref.flush();
-console.assert(ref.getAuth().auth.myAuthProperty, 'authData has custom property');
+console.assert(ref.getAuth().displayName === 'Mr. Meeseeks', 'Auth name is correct');
 ```
 
 <hr>
@@ -200,6 +221,13 @@ Finds a user previously created with [`createUser`](https://www.firebase.com/doc
 ##### `getUser(uid)` -> `Promise<Object>`
 
 Finds a user previously created with [`createUser`](https://www.firebase.com/docs/web/api/firebase/createuser.html). If no user was created with the specified `email`, the promise is rejected.
+
+##### `updateUser(user)` -> `Promise<MockUser>`
+
+Replace the existing user with a new one, by matching uid. Throws an
+error if no user exists whose uid matches the given user's uid. Resolves
+with the updated user when complete. This operation is queued until the
+next flush.
 
 ## Server Timestamps
 
