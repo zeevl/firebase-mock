@@ -316,8 +316,12 @@ describe('Auth', function () {
   });
 
   describe('#onAuthStateChanged', function () {
-    it('is triggered when changeAuthState modifies data', function () {
+
+    beforeEach(() => {
       ref.onAuthStateChanged(spy);
+    });
+
+    it('is triggered when changeAuthState modifies data', function () {
       ref.changeAuthState({
         uid: 'kato'
       });
@@ -328,7 +332,6 @@ describe('Auth', function () {
     });
 
     it('is not be triggered if auth state does not change', function () {
-      ref.onAuthStateChanged(spy);
       ref.changeAuthState({
         uid: 'kato'
       });
@@ -342,7 +345,6 @@ describe('Auth', function () {
     });
 
     it('synchronously triggers the callback with the current auth data', function () {
-      ref.onAuthStateChanged(spy);
       expect(spy).to.have.been.calledWith(null);
     });
   });
