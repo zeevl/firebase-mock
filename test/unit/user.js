@@ -73,6 +73,12 @@ describe('User', function() {
         });
       }).to.throw(User.msg_tokenAuthedInTheFuture);
     });
+
+    it('should keep reference to passed-in auth', () => {
+      const user = new User(auth, {});
+      auth.autoFlush(false);
+      expect(user._auth.flushDelay).to.equal(false);
+    });
   });
 
   describe('#clone', function() {
@@ -84,6 +90,13 @@ describe('User', function() {
       u2.customClaims.claim1 = 'value2';
       expect(u1.customClaims).to.deep.equal(ogClaims);
     });
+
+    it('preserves reference to auth', () => {
+      const u1 = new User(auth, {});
+      const u2 = u1.clone();
+      u1._auth.autoFlush(false);
+      expect(u2._auth.flushDelay).to.equal(u1._auth.flushDelay);
+   });
   });
 
   describe('#delete', function() {
