@@ -90,3 +90,38 @@ result.then(function (res) {
   console.assert(res.successCount === 1, '1 message succeeded');
 });
 ```
+
+## Assert arguments
+If you want to assert the arguments that were passed to any of the send-functions you can register a callback.
+
+##### Source
+
+```js
+var ref;
+var messageService = {
+  messaging: function () {
+    if (!ref) ref = firebase.messaging();
+    return ref;
+  },
+  send: function () {
+    var message = {
+      data: {
+        foo: 'bar'
+      },
+      ...
+    };
+    messageService.ref().send();
+  },
+}
+```
+
+##### Test
+
+```js
+MockFirebase.override();
+messageService.ref().on('send', function(args) {
+  console.assert(args.data.foo === 'bar', 'message is coorect');
+});
+messageService.send();
+messageService.messaging().flush();
+```

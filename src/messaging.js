@@ -11,6 +11,7 @@ var Queue = require('./queue').Queue;
 
 function MockMessaging() {
   this.results = {};
+  this.callbacks = {};
   this.queue = new Queue();
   this.flushDelay = false;
 }
@@ -20,7 +21,6 @@ MockMessaging.prototype.send = function(message, dryRun) {
   assert(!_.isUndefined(message), 'message must not be undefined');
   return this._send(_.toArray(arguments), 'send', function() {
     var messageId = autoId(new Date().getTime());
-    console.log(typeof(result));
     return messageId;
   });
 };
@@ -70,11 +70,18 @@ MockMessaging.prototype.nextResult = function(methodName, result) {
   this.results[methodName] = result;
 };
 
+MockMessaging.prototype.on = function(methodName, callback) {
+  assert(_.isFunction(callback), 'callback must be a function');
+  this.callbacks[methodName] = callback;
+};
+
 MockMessaging.prototype._send = function(args, methodName, defaultResultFn) {
   var result = this._nextResult(methodName);
   var self = this;
   return new Promise(function (resolve, reject) {
     self._defer(methodName, args, function () {
+      self._invokeOn(methodName, args);
+
       if (result === null) {
         resolve(defaultResultFn());
       } else if (result instanceof Error) {
@@ -84,6 +91,13 @@ MockMessaging.prototype._send = function(args, methodName, defaultResultFn) {
       }
     });
   });
+};
+
+MockMessaging.prototype._invokeOn = function(methodName, args) {
+  var callback = this.callbacks[methodName];
+  if (callback) {
+    callback(args);
+  }
 };
   
 MockMessaging.prototype._nextResult = function(type) {

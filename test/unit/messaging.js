@@ -41,6 +41,20 @@ describe('MockMessaging', function() {
     });
   });
 
+  describe('#on', function() {
+    it('throws if callback is not a function', function() {
+      expect(function() {
+        messaging.on('send', 'not a function');
+      }).to.throw();
+    });
+
+    it('registers a callback', function() {
+      var callback = function() {};
+      messaging.on('send', callback);
+      expect(messaging.callbacks.send).to.be.eql(callback);
+    });
+  });
+
   describe('#send', function() {
     it('should check that message is not undefined', function() {
       expect(function() {
@@ -83,6 +97,19 @@ describe('MockMessaging', function() {
       }).catch(function(err) {
         done(err);
       });
+    });
+
+    it('invokes callback with args', function(done) {
+      var message = {
+        message: 'foo'
+      };
+      messaging.on('send', function(args) {
+        expect(args).to.have.lengthOf(1);
+        expect(args[0]).to.be.eql(message);
+        done();
+      });
+      messaging.send(message);
+      messaging.flush();
     });
   });
 
@@ -134,6 +161,17 @@ describe('MockMessaging', function() {
       }).catch(function(err) {
         done(err);
       });
+    });
+
+    it('invokes callback with args', function(done) {
+      var message = [{message: 'foobar'}];
+      messaging.on('sendAll', function(args) {
+        expect(args).to.have.lengthOf(1);
+        expect(args[0]).to.be.eql(message);
+        done();
+      });
+      messaging.sendAll(message);
+      messaging.flush();
     });
   });
 
@@ -194,6 +232,17 @@ describe('MockMessaging', function() {
       }).catch(function(err) {
         done(err);
       });
+    });
+
+    it('invokes callback with args', function(done) {
+      var message = {message: 'foobar', tokens: ['t1']};
+      messaging.on('sendMulticast', function(args) {
+        expect(args).to.have.lengthOf(1);
+        expect(args[0]).to.be.eql(message);
+        done();
+      });
+      messaging.sendMulticast(message);
+      messaging.flush();
     });
   });
 });
