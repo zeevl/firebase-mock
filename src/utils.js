@@ -108,7 +108,7 @@ exports.removeEmptyRtdbProperties = function removeEmptyRtdbProperties(obj) {
   }
 };
 
-exports.removeEmptyFirestoreProperties = function removeEmptyFirestoreProperties(obj) {
+exports.removeEmptyFirestoreProperties = function removeEmptyFirestoreProperties(obj, current) {
   var t = typeof obj;
   if (t === 'boolean' || t === 'string' || t === 'number' || t === 'undefined') {
     return obj;
@@ -116,14 +116,30 @@ exports.removeEmptyFirestoreProperties = function removeEmptyFirestoreProperties
   if (obj instanceof Date) return obj;
 
   var keys = getKeys(obj);
+
+  const doArrayRemove = function(replacement, sub) {
+    return current[sub].filter(function(e) {
+      return replacement.indexOf(e) === -1;
+    });
+  };
+
   if (keys.length > 0) {
     for (var s in obj) {
+
       var value = removeEmptyFirestoreProperties(obj[s]);
       if (FieldValue.delete().isEqual(value)) {
         delete obj[s];
       }
       if (FieldValue.serverTimestamp().isEqual(value)) {
         obj[s] = new Date();
+      }
+      if (FieldValue.arrayRemove().isEqual(value)) {
+        const replacement = Array.isArray(value.arg) ? value.arg : [value.arg];
+        obj[s] = doArrayRemove(replacement, s);
+      }
+      if (FieldValue.arrayUnion().isEqual(value)) {
+        const replacement = Array.isArray(value.arg) ? value.arg : [value.arg];
+        obj[s] = _.union(current[s], replacement);
       }
     }
   }
