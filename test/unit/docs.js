@@ -37,4 +37,77 @@ describe('API.md', () => {
       console.assert(ref.getAuth().displayName === 'Mr. Meeseeks', 'Auth name is correct');
     });
   });
+
+  describe('Messaging examples', () => {
+    let ref;
+    beforeEach(() => {
+      const Messaging = require('../../').MockMessaging;
+      ref = new Messaging();
+    });
+
+    it('send messages', () => {
+      var message = {
+        notification: {
+          title: 'message title',
+          body: 'foobar'
+        }
+      };
+      var result = ref.send(message);
+      ref.flush();
+      result.then(function (messageId) {
+        console.assert(messageId !== '', 'message id is ' + messageId);
+      });
+    });
+
+    it('returns custom message responses', () => {
+      var messages = [
+        {
+          notification: {
+            title: 'message title',
+            body: 'foobar'
+          }
+        },
+        {
+          notification: {
+            title: 'message title',
+            body: 'second message'
+          }
+        }
+      ];
+      var batchResponse = {
+        failureCount: 1,
+        responses: [
+            {
+                error: "something went wrong",
+                success: false,
+            },
+            {
+                messageId: "12345",
+                success: true,
+            },
+        ],
+        successCount: 1,
+    }
+      var result = ref.respondNext('sendAll', batchResponse);
+      ref.sendAll(messages);
+      ref.flush();
+      result.then(function (response) {
+        console.assert(response === batchResponse, 'custom batch response is returned');
+      });
+    });
+
+    it('callback on sending messages', () => {
+      var message = {
+        notification: {
+          title: 'message title',
+          body: 'foobar'
+        }
+      };
+      ref.on('send', function(args) {
+        console.assert(args[0] === message, 'message argument is coorect');
+      });
+      ref.send(message);
+      ref.flush();
+    });
+  });
 });
