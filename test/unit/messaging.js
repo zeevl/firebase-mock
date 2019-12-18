@@ -88,7 +88,7 @@ describe('MockMessaging', function() {
     });
 
     it('can return user defined results', function(done) {
-      messaging.nextResult('send', 'the result');
+      messaging.respondNext('send', 'the result');
       var thenable = messaging.send({message: 'foo'});
       messaging.flush();
       thenable.then(function(result) {
@@ -152,7 +152,7 @@ describe('MockMessaging', function() {
     });
 
     it('can return user defined results', function(done) {
-      messaging.nextResult('sendAll', 'the result');
+      messaging.respondNext('sendAll', 'the result');
       var thenable = messaging.sendAll([{message: 'foobar'}]);
       messaging.flush();
       thenable.then(function(result) {
@@ -223,7 +223,7 @@ describe('MockMessaging', function() {
     });
 
     it('can return user defined results', function(done) {
-      messaging.nextResult('sendMulticast', 'the result');
+      messaging.respondNext('sendMulticast', 'the result');
       var thenable = messaging.sendMulticast({message: 'foobar', tokens: ['t1']});
       messaging.flush();
       thenable.then(function(result) {

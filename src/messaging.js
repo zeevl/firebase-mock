@@ -60,17 +60,20 @@ MockMessaging.prototype.autoFlush = function (delay) {
 };
 
 MockMessaging.prototype.failNext = function(methodName, err) {
+  assert(_.isString(methodName), 'methodName must be a string');
   assert(err instanceof Error, 'err must be an "Error" object');
   this.results[methodName] = err;
 };
 
-MockMessaging.prototype.nextResult = function(methodName, result) {
+MockMessaging.prototype.respondNext = function(methodName, result) {
+  assert(_.isString(methodName), 'methodName must be a string');
   assert(!_.isUndefined(result), 'result must not be undefined');
   assert(!(result instanceof Error), 'result must not be an "Error" object');
   this.results[methodName] = result;
 };
 
 MockMessaging.prototype.on = function(methodName, callback) {
+  assert(_.isString(methodName), 'methodName must be a string');
   assert(_.isFunction(callback), 'callback must be a function');
   this.callbacks[methodName] = callback;
 };
@@ -101,9 +104,9 @@ MockMessaging.prototype._invokeOn = function(methodName, args) {
 };
   
 MockMessaging.prototype._nextResult = function(type) {
-  var err = this.results[type];
+  var result = this.results[type];
   delete this.results[type];
-  return err || null;
+  return result || null;
 };
 
 MockMessaging.prototype._defer = function(sourceMethod, sourceArgs, callback) {
