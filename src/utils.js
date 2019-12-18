@@ -62,15 +62,21 @@ exports.priAndKeyComparator = function priAndKeyComparator(testPri, testKey, val
 };
 
 exports.priorityComparator = function priorityComparator(a, b) {
+  // https://firebase.google.com/docs/database/web/lists-of-data#data-order
   if (a !== b) {
     if (a === null || b === null) {
       return a === null ? -1 : 1;
     }
-    if (typeof a !== typeof b) {
-      return typeof a === 'number' ? -1 : 1;
-    } else {
-      return a > b ? 1 : -1;
+    if(typeof a === 'boolean' && typeof b === 'boolean') {
+      return !a ? -1 : 1;
     }
+    if (typeof a !== typeof b) {
+      if(typeof a === 'boolean' || typeof b === 'boolean') {
+        return typeof a === 'boolean' ? -1 : 1;
+      }
+      return typeof a === 'number' ? -1 : 1;
+    }
+    return a > b ? 1 : -1;
   }
   return 0;
 };
