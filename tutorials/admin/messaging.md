@@ -1,4 +1,4 @@
-# Tutorial: Authentication
+# Tutorial: Messaging
 
 MockFirebase replaces most of Firebase's messaging method of the admin API with simple mocks. Messaging methods will always succeed unless an error is specifically specified using [`failNext`](../API.md#failnextmethod-err---undefined).
 
@@ -42,7 +42,7 @@ result.then(function (messageId) {
 - [sendMulticast(message: MulticastMessage, dryRun?: boolean): Promise<BatchResponse>](https://firebase.google.com/docs/reference/admin/node/admin.messaging.Messaging.html#send-multicast)
 
 ## Set custom message response
-In some cases it could be necessary to fake a custom send response (like a [BatchResponse](https://firebase.google.com/docs/reference/admin/node/admin.messaging.BatchResponse.html)). In this cases you can use `firebase.messaging().nextResult(methodName, result)` (similar to `firebase.messaging().failNext(methodName, err)`).
+In some cases it could be necessary to fake a custom send response (like a [BatchResponse](https://firebase.google.com/docs/reference/admin/node/admin.messaging.BatchResponse.html)). In this cases you can use `firebase.messaging().respondNext(methodName, result)` (similar to `firebase.messaging().failNext(methodName, err)`).
 
 ##### Source
 
@@ -82,7 +82,7 @@ var batchResponse = {
   ],
   successCount: 1
 }
-messageService.messaging().nextResult('sendAll', batchResponse);
+messageService.messaging().respondNext('sendAll', batchResponse);
 var result = messageService.sendAll();
 messageService.messaging().flush();
 result.then(function (res) {
@@ -93,6 +93,7 @@ result.then(function (res) {
 
 ## Assert arguments
 If you want to assert the arguments that were passed to any of the send-functions you can register a callback.
+The callback receives as argument that contains all arguments that were passed to the send-function.
 
 ##### Source
 
@@ -120,7 +121,7 @@ var messageService = {
 ```js
 MockFirebase.override();
 messageService.ref().on('send', function(args) {
-  console.assert(args.data.foo === 'bar', 'message is coorect');
+  console.assert(args[0].data.foo === 'bar', 'message is coorect');
 });
 messageService.send();
 messageService.messaging().flush();
