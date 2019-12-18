@@ -148,10 +148,10 @@ describe('MockQuery', function () {
 
       it('should work with boolean equalTo', function() {
         var spy = sinon.spy(function(snap) {
-          expect(_.keys(snap.val())).eql(['zbool_true']);
+          expect(_.keys(snap.val())).eql(['bool_true']);
         });
 
-        ref.limitToLast(2).equalTo(true).on('value', spy);
+        ref.equalTo(true).on('value', spy);
         ref.flush();
         expect(spy).callCount(1);
       });

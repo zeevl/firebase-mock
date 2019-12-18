@@ -78,10 +78,12 @@
       ".priority": "c",
       "aLetter": "c"
     },
-    "zbool_true": {
+    "bool_true": {
+      ".priority": true,
       "aBoolean": true
     },
-    "zbool_false": {
+    "bool_false": {
+      ".priority": false,
       "aBoolean": false
     }
   },
