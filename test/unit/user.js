@@ -97,6 +97,16 @@ describe('User', function() {
       u1._auth.autoFlush(false);
       expect(u2._auth.flushDelay).to.equal(u1._auth.flushDelay);
    });
+
+    it('preserves deep equality', () => {
+      const user = new User(auth, {
+        customClaims: {
+          'a': 1,
+        },
+      });
+      clock.tick(1000);
+      expect(user.clone()).to.deep.equal(user);
+    });
   });
 
   describe('#delete', function() {

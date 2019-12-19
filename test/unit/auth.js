@@ -931,6 +931,18 @@ describe('Auth', function () {
         .then(updatedUser => expect(updatedUser).to.deep.equal(newUser));
     });
 
+    it('preserves deep equality of users', () => {
+      ref.createUser(new User(ref, {
+        uid: 'kato',
+        email: 'test@example.com',
+      }));
+      return ref.getUser('kato').then(oldUser => {
+        ref.updateUser(oldUser)
+          .then(ref.getUser('kato'))
+          .then(newUser => expect(expect(oldUser).to.deep.equal(newUser)));
+      });
+    });
+
     it('should select by uid', () => {
       const uid = 456;
       const email = 'newEmail@example.com';
