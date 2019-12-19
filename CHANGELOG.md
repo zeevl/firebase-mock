@@ -7,12 +7,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 ### Added
 - Changelog
-- mock `auth.Auth.onIdTokenChanged()` method, matching the previous
+- Mock `auth.Auth.onIdTokenChanged()` method, matching the previous
   behavior of `onAuthStateChanged()` (see below)
 
 ### Changed
-- (Breaking) Consistent with Firebase SDK
-  [version 4.0.0](https://firebase.google.com/support/release-notes/js#version_500_-_may_8_2018) and later,
+- (Breaking) Consistent with Firebase SDK [version 4.0.0](https://firebase.google.com/support/release-notes/js#version_500_-_may_8_2018) and later,
   and later, `onAuthStateChanged` no longer issues an event when a new
   ID token is issued for the same user. The `onIdTokenChanged` method is
   now mocked, keeping the previous behavior.
