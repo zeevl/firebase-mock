@@ -175,8 +175,9 @@ Authentication methods for simulating changes to the auth state of a Firebase re
 Changes the active authentication credentials to the `authData` object.
 Before changing the authentication state, `changeAuthState` checks the
 `user` object against the current authentication data.
-`onAuthStateChanged` listeners will only be triggered if the data is not
-deeply equal.
+`onIdTokenChanged` listeners will be triggered if the data is not
+deeply equal. `onAuthStateChanged` listeners will be triggered if the
+data is deeply equal but with different ID token validity.
 
 `user` should be a `MockUser` object or an object with the same fields
 as `MockUser`. To simulate no user being authenticated, pass `null` for
@@ -225,9 +226,13 @@ Finds a user previously created with [`createUser`](https://www.firebase.com/doc
 ##### `updateUser(user)` -> `Promise<MockUser>`
 
 Replace the existing user with a new one, by matching uid. Throws an
-error if no user exists whose uid matches the given user's uid. Resolves
-with the updated user when complete. This operation is queued until the
-next flush.
+error if no user exists whose uid matches the given user's uid.
+Appropriate `onAuthStateChanged` and `onIdTokenChanged` listeners will
+be triggered if the new user has the same `uid` as the current
+authenticated user.
+
+Resolves with the updated user when complete. This operation is queued
+until the next flush.
 
 ## Server Timestamps
 
