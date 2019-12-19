@@ -217,7 +217,7 @@ describe('User', function() {
 
   describe('#getIdToken', function() {
     it('should get token', function() {
-      var user = new User(auth, {});
+      const user = new User(auth, {});
       return expect(user.getIdToken()).to.eventually.not.be.empty;
     });
 

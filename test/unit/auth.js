@@ -23,7 +23,7 @@ describe('Auth', function () {
   describe('#changeAuthState', function () {
 
     it('sets the auth data', function () {
-      var user = {};
+      var user = new User(ref, {});
       ref.changeAuthState(user);
       ref.flush();
       expect(ref.getAuth()).to.equal(user);
@@ -266,18 +266,18 @@ describe('Auth', function () {
       var context = {};
       ref.onAuth(spy);
       ref.onAuth(spy, context);
-      ref.changeAuthState({
+      ref.changeAuthState(new User(ref, {
         uid: 'kato1'
-      });
+      }));
       ref.flush();
       expect(spy.callCount).to.equal(4);
       spy.reset();
       // will not match any context
       ref.offAuth(spy, {});
       ref.offAuth(spy, context);
-      ref.changeAuthState({
+      ref.changeAuthState(new User(ref, {
         uid: 'kato2'
-      });
+      }));
       ref.flush();
       expect(spy.callCount).to.equal(1);
     });
@@ -331,7 +331,7 @@ describe('Auth', function () {
       });
     });
 
-    it('is not be triggered if auth state does not change', function () {
+    it('is not triggered if auth state does not change', function () {
       ref.changeAuthState({
         uid: 'kato'
       });
