@@ -28,8 +28,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   one.
 - `DataSnapshot.child` now correctly splits child paths by '/'
   characters
-- `Query.startAt`, `Query.endAt`, and `Query.equalTo` now correctly
-  accept boolean parameters.
+- Boolean values are now allowed in RTDB priority fields and as
+  arguments to `Query.startAt`, `Query.endAt`, and `Query.equalTo`.
 
 
 [Unreleased]: https://github.com/dmurvihill/firebase-mock/compare/v2.2.10...HEAD
