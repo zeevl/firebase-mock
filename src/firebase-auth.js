@@ -180,7 +180,7 @@ Object.keys(signinMethods)
     FirebaseAuth.prototype[method] = function () {
       var self = this;
       var user = getUser.apply(this, arguments);
-      var promise = new Promise(function(resolve, reject) {
+      return new Promise(function(resolve, reject) {
         self._authEvent(method, function(err) {
           if (err) reject(err);
           self.currentUser = user;
@@ -276,7 +276,7 @@ FirebaseAuth.prototype.unauth = function () {
 
 FirebaseAuth.prototype.signOut = function () {
   var self = this, updateuser = this.currentUser !== null;
-  var promise = new Promise(function(resolve, reject) {
+  return new Promise(function(resolve, reject) {
     self._authEvent('signOut', function(err) {
       if (err) reject(err);
       self.currentUser = null;
@@ -287,7 +287,6 @@ FirebaseAuth.prototype.signOut = function () {
       }
     }, true);
   });
-  return promise;
 };
 
 FirebaseAuth.prototype.createUserWithEmailAndPassword = function (email, password) {
@@ -569,7 +568,7 @@ FirebaseAuth.prototype._nextUid = function () {
 FirebaseAuth.prototype._validateNewUid = function (uid) {
   if (uid) {
     var user = _.find(this._auth.users, function(user) {
-      return user.uid == uid;
+      return user.uid === uid;
     });
     if (user) {
       var err = new Error('The provided uid is already in use by an existing user. Each user must have a unique uid.');
@@ -583,7 +582,7 @@ FirebaseAuth.prototype._validateNewUid = function (uid) {
 FirebaseAuth.prototype._validateExistingUid = function (uid) {
   if (uid) {
     var user = _.find(this._auth.users, function(user) {
-      return user.uid == uid;
+      return user.uid === uid;
     });
     if (!user) {
       var err = new Error('There is no existing user record corresponding to the provided identifier.');

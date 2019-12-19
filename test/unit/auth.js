@@ -1006,7 +1006,7 @@ describe('Auth', function () {
       return ref.createUser({
         email: 'kato@kato.com',
         password: 'kato'
-      }).then(function(user) {
+      }).then(function() {
         var err = new Error('custom error');
         ref.failNext('setCustomUserClaims', err);
         return expect(ref.setCustomUserClaims('uid', {
