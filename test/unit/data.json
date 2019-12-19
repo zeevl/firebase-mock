@@ -77,6 +77,14 @@
     "char_c": {
       ".priority": "c",
       "aLetter": "c"
+    },
+    "bool_true": {
+      ".priority": true,
+      "aBoolean": true
+    },
+    "bool_false": {
+      ".priority": false,
+      "aBoolean": false
     }
   },
   "collections": {
