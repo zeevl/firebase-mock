@@ -87,9 +87,9 @@ describe('API.md', () => {
             },
         ],
         successCount: 1,
-    }
-      var result = ref.respondNext('sendAll', batchResponse);
-      ref.sendAll(messages);
+      };
+      ref.respondNext('sendAll', batchResponse);
+      var result = ref.sendAll(messages);
       ref.flush();
       result.then(function (response) {
         console.assert(response === batchResponse, 'custom batch response is returned');
