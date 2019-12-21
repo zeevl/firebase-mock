@@ -20,9 +20,9 @@ Only `MockFirebase` methods are included here. For details on normal Firebase AP
   - [`setClock(fn)`](#firebasesetclockfn---undefined)
   - [`restoreClock()`](#firebasesetclockfn---undefined)
 - [Messaging](#messaging)
-  - [`respondNext(methodName, result)`](#respondnextmethodname--result---undefined)
-  - [`failNext(methodName, err)`](#failnextmethodname--err---undefined)
-  - [`on(methodName, callback)`](#onmethodname--callback---undefined)
+  - [`respondNext(methodName, result)`](#respondnextmethodname-result---undefined)
+  - [`failNext(methodName, err)`](#failnextmethodname-err---undefined)
+  - [`on(methodName, callback)`](#onmethodname-callback---undefined)
 
 ## Core
 
