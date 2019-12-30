@@ -12,7 +12,7 @@
   },
   "repository": {
     "type": "git",
-    "url": "git://github.com/soumak77/firebase-mock.git"
+    "url": "git://github.com/dmurvihill/firebase-mock.git"
   },
   "keywords": [
     "firebase",
@@ -21,13 +21,13 @@
   "author": "Brian Soumakian",
   "license": "MIT",
   "bugs": {
-    "url": "https://github.com/soumak77/firebase-mock/issues"
+    "url": "https://github.com/dmurvihill/firebase-mock/issues"
   },
   "files": [
     "src/",
     "browser/"
   ],
-  "homepage": "https://github.com/soumak77/firebase-mock",
+  "homepage": "https://github.com/dmurvihill/firebase-mock",
   "dependencies": {
     "firebase-auto-ids": "~1.1.0",
     "lodash.assign": "^4.2.0",
