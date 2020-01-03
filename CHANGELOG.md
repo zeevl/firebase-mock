@@ -7,6 +7,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 ### Added
 - Changelog
+- Support for Firebase Messaging (Admin API)
 
 ### Changed
 - `MockStorageFile.download()` now allows omitting the destination arg;
