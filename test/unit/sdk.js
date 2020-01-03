@@ -1,8 +1,6 @@
 'use strict';
 
-var sinon    = require('sinon');
 var expect   = require('chai').use(require('sinon-chai')).expect;
-var _        = require('../../src/lodash');
 var Authentication = require('../../').MockAuthentication;
 var Firebase = require('../../').MockFirebase;
 var MockFirebaseSdk = require('../../src/sdk');
@@ -229,5 +227,4 @@ describe('MockFirebaseSdk', function () {
         .that.is.an('function');
     });
   });
-
 });
