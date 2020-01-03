@@ -114,13 +114,8 @@ MockFirebaseUser.prototype.updateProfile = function (profile) {
 };
 
 MockFirebaseUser.prototype.getIdToken = function (forceRefresh) {
-  var self = this;
-  return new Promise(function(resolve) {
-    if (forceRefresh) {
-        self._refreshIdToken();
-    }
-    resolve(self._idtoken);
-  });
+  return (forceRefresh ? this._refreshIdToken() : Promise.resolve())
+    .then(() => this._idtoken);
 };
 
 MockFirebaseUser.prototype.toJSON = function() {

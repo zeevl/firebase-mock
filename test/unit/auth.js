@@ -23,7 +23,7 @@ describe('Auth', function () {
   describe('#changeAuthState', function () {
 
     it('sets the auth data', function () {
-      var user = {};
+      var user = new User(ref, {});
       ref.changeAuthState(user);
       ref.flush();
       expect(ref.getAuth()).to.equal(user);
@@ -266,18 +266,18 @@ describe('Auth', function () {
       var context = {};
       ref.onAuth(spy);
       ref.onAuth(spy, context);
-      ref.changeAuthState({
+      ref.changeAuthState(new User(ref, {
         uid: 'kato1'
-      });
+      }));
       ref.flush();
       expect(spy.callCount).to.equal(4);
       spy.reset();
       // will not match any context
       ref.offAuth(spy, {});
       ref.offAuth(spy, context);
-      ref.changeAuthState({
+      ref.changeAuthState(new User(ref, {
         uid: 'kato2'
-      });
+      }));
       ref.flush();
       expect(spy.callCount).to.equal(1);
     });
@@ -315,9 +315,9 @@ describe('Auth', function () {
 
   });
 
-  describe('#onAuthStateChanged', function () {
-    it('is triggered when changeAuthState modifies data', function () {
-      ref.onAuthStateChanged(spy);
+  function onAuthChangeSharedProperties(it, unsubscribe) {
+
+    it('is triggered when changeAuthState modifies the user', function () {
       ref.changeAuthState({
         uid: 'kato'
       });
@@ -327,8 +327,7 @@ describe('Auth', function () {
       });
     });
 
-    it('is not be triggered if auth state does not change', function () {
-      ref.onAuthStateChanged(spy);
+    it('is not triggered when auth state does not change', function () {
       ref.changeAuthState({
         uid: 'kato'
       });
@@ -342,8 +341,118 @@ describe('Auth', function () {
     });
 
     it('synchronously triggers the callback with the current auth data', function () {
-      ref.onAuthStateChanged(spy);
       expect(spy).to.have.been.calledWith(null);
+    });
+
+    it('does not trigger after unsubscribe', function () {
+      unsubscribe();
+      spy.reset();
+      ref.changeAuthState(new User(ref, {
+        uid: 'kato',
+      }));
+      ref.flush();
+      expect(spy.callCount).to.equal(0);
+    });
+  }
+
+  describe('#onIdTokenChanged', () => {
+
+    let unsubscribe;
+
+    beforeEach(() => {
+      unsubscribe = ref.onIdTokenChanged(spy);
+    });
+
+    onAuthChangeSharedProperties(it, () => unsubscribe());
+
+    it('is triggered if only ID token changes', () => {
+      const user = new User(ref, {
+        uid: 'kato',
+        email: 'test@example.com',
+      });
+      ref.createUser(user);
+      ref.changeAuthState(user);
+      ref.flush();
+      spy.reset();
+      const userWithNewToken = user.clone();
+      userWithNewToken._idtoken = Math.random().toString();
+      ref.changeAuthState(userWithNewToken);
+      ref.flush();
+      expect(spy.called).to.equal(true);
+    });
+
+    it('is triggered on updating current user', () => {
+      const user = new User(ref, {
+        uid: 'kato',
+        email: 'test@example.com',
+      });
+      ref.createUser(user);
+      ref.changeAuthState(user);
+      ref.flush();
+      spy.reset();
+      const userWithNewToken = user.clone();
+      userWithNewToken._idtoken = Math.random().toString();
+      ref.updateUser(userWithNewToken);
+      ref.flush();
+      expect(spy.called).to.equal(true);
+    });
+
+    it('is not triggered on updating non-current user', () => {
+      const currentUser = new User(ref, {
+        uid: 'green hornet',
+        email: 'test@example.com',
+      });
+      const user = new User(ref, {
+        uid: 'kato',
+        email: 'test2@example.com',
+      });
+      ref.createUser(user);
+      ref.createUser(currentUser);
+      ref.changeAuthState(currentUser);
+      ref.flush();
+      spy.reset();
+      const userWithNewToken = user.clone();
+      userWithNewToken._idtoken = Math.random().toString();
+      ref.updateUser(userWithNewToken);
+      ref.flush();
+      expect(spy.called).to.equal(false);
+    });
+
+    it('is not triggered on updating current user with the same info', () => {
+      const user = new User(ref, {
+        uid: 'kato',
+        email: 'test@example.com',
+      });
+      ref.createUser(user);
+      ref.changeAuthState(user);
+      ref.flush();
+      spy.reset();
+      ref.updateUser(user.clone());
+      ref.flush();
+      expect(spy.called).to.equal(false);
+    });
+  });
+
+  describe('#onAuthStateChanged', function () {
+
+    let unsubscribe;
+
+    beforeEach(() => {
+      unsubscribe = ref.onAuthStateChanged(spy);
+    });
+
+    onAuthChangeSharedProperties(it, () => unsubscribe());
+
+    it('is not triggered if only ID token changes', () => {
+      const user = new User(ref, {
+        uid: 'kato'
+      });
+      ref.changeAuthState(user);
+      ref.flush();
+      spy.reset();
+      ref.autoFlush();
+      return user.getIdToken(true)
+        .then(() => expect(spy.called).to.equal(false));
     });
   });
 
@@ -897,7 +1006,7 @@ describe('Auth', function () {
       return ref.createUser({
         email: 'kato@kato.com',
         password: 'kato'
-      }).then(function(user) {
+      }).then(function() {
         var err = new Error('custom error');
         ref.failNext('setCustomUserClaims', err);
         return expect(ref.setCustomUserClaims('uid', {
@@ -927,6 +1036,18 @@ describe('Auth', function () {
       }).then(() => ref.updateUser(newUser))
         .then(() => ref.getUser(uid))
         .then(updatedUser => expect(updatedUser).to.deep.equal(newUser));
+    });
+
+    it('preserves deep equality of users', () => {
+      ref.createUser(new User(ref, {
+        uid: 'kato',
+        email: 'test@example.com',
+      }));
+      return ref.getUser('kato').then(oldUser => {
+        ref.updateUser(oldUser)
+          .then(ref.getUser('kato'))
+          .then(newUser => expect(expect(oldUser).to.deep.equal(newUser)));
+      });
     });
 
     it('should select by uid', () => {
