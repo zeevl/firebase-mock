@@ -4,34 +4,20 @@ MockFirebase replaces most of Firebase's messaging method of the admin API with 
 
 ## Send message
 
-In this example, we'll create send a new message using Firebase messaging.
-
-##### Source
+In this example, we'll send a new message using Firebase messaging.
 
 ```js
-var ref;
-var messageService = {
-  messaging: function () {
-    if (!ref) ref = firebase.messaging();
-    return ref;
-  },
-  send: function () {
-    var message = {
-
-    };
-    messageService.ref().send();
-  },
-}
-```
-
-##### Test
-
-```js
-MockFirebase.override();
-var result = messageService.send();
-messageService.messaging().flush();
+var mockMessaging = new MockMessaging();
+var message = {
+  notification: {
+    title: 'message title',
+    body: 'foobar'
+  }
+};
+var result = mockMessaging.send(message);
+mockMessaging.flush();
 result.then(function (messageId) {
-  console.log(messageId);
+  console.assert(messageId !== '', 'message id is ' + messageId);
 });
 ```
 
@@ -44,50 +30,41 @@ result.then(function (messageId) {
 ## Set custom message response
 In some cases it could be necessary to fake a custom send response (like a [BatchResponse](https://firebase.google.com/docs/reference/admin/node/admin.messaging.BatchResponse.html)). In this cases you can use `firebase.messaging().respondNext(methodName, result)` (similar to `firebase.messaging().failNext(methodName, err)`).
 
-##### Source
-
 ```js
-var ref;
-var messageService = {
-  messaging: function () {
-    if (!ref) ref = firebase.messaging();
-    return ref;
+var mockMessaging = new MockMessaging();
+var messages = [
+  {
+    notification: {
+      title: 'message title',
+      body: 'foobar'
+    }
   },
-  send: function () {
-    var message = {
-
-    };
-    messageService.ref().send();
-  },
-}
-```
-
-##### Test
-
-```js
-MockFirebase.override();
+  {
+    notification: {
+      title: 'message title',
+      body: 'second message'
+    }
+  }
+];
 var batchResponse = {
   failureCount: 1,
-  response: [
-    {
-      error: {...},
-      messageId: undefined,
-      success: false
-    },
-    {
-      error: undefined,
-      messageId: '...',
-      success: true
-    }
+  responses: [
+      {
+          error: "something went wrong",
+          success: false,
+      },
+      {
+          messageId: "12345",
+          success: true,
+      },
   ],
-  successCount: 1
-}
-messageService.messaging().respondNext('sendAll', batchResponse);
-var result = messageService.sendAll();
-messageService.messaging().flush();
-result.then(function (res) {
-  console.assert(res.failureCount === 1, '1 message failed');
-  console.assert(res.successCount === 1, '1 message succeeded');
+  successCount: 1,
+};
+mockMessaging.respondNext('sendAll', batchResponse);
+var result = mockMessaging.sendAll(messages);
+mockMessaging.flush();
+result.then(function (response) {
+  console.assert(response === batchResponse, 'custom batch response is returned');
 });
 ```
 
@@ -95,34 +72,17 @@ result.then(function (res) {
 If you want to assert the arguments that were passed to any of the send-functions you can register a callback.
 The callback receives as argument that contains all arguments that were passed to the send-function.
 
-##### Source
-
 ```js
-var ref;
-var messageService = {
-  messaging: function () {
-    if (!ref) ref = firebase.messaging();
-    return ref;
-  },
-  send: function () {
-    var message = {
-      data: {
-        foo: 'bar'
-      },
-      ...
-    };
-    messageService.ref().send();
-  },
-}
-```
-
-##### Test
-
-```js
-MockFirebase.override();
-messageService.ref().on('send', function(args) {
-  console.assert(args[0].data.foo === 'bar', 'message is coorect');
+var mockMessaging = new MockMessaging();
+var message = {
+  notification: {
+    title: 'message title',
+    body: 'foobar'
+  }
+};
+mockMessaging.on('send', function(args) {
+  console.assert(args[0] === message, 'message argument is coorect');
 });
-messageService.send();
-messageService.messaging().flush();
+mockMessaging.send(message);
+mockMessaging.flush();
 ```

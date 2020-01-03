@@ -1,15 +1,19 @@
-const MockUser = require('../../src/user');
+'use strict';
+
+/* jshint browser:true */
+/* globals expect:false */
 
 describe('API.md', () => {
   describe('Auth example for changeAuthState', () => {
 
     let ref;
     beforeEach(() => {
-      const Authentication = require('../../').MockAuthentication;
+      const Authentication = require('../../src').MockAuthentication;
       ref = new Authentication();
     });
 
     it('works as described', () => {
+      const MockUser = require('../../src/user');
       ref.changeAuthState(new MockUser(ref, {
         uid: 'theUid',
         email: 'me@example.com',
@@ -39,10 +43,11 @@ describe('API.md', () => {
   });
 
   describe('Messaging examples', () => {
-    let ref;
+    let mockMessaging;
+
     beforeEach(() => {
       const Messaging = require('../../').MockMessaging;
-      ref = new Messaging();
+      mockMessaging = new Messaging();
     });
 
     it('send messages', () => {
@@ -52,8 +57,8 @@ describe('API.md', () => {
           body: 'foobar'
         }
       };
-      var result = ref.send(message);
-      ref.flush();
+      var result = mockMessaging.send(message);
+      mockMessaging.flush();
       result.then(function (messageId) {
         console.assert(messageId !== '', 'message id is ' + messageId);
       });
@@ -88,9 +93,9 @@ describe('API.md', () => {
         ],
         successCount: 1,
       };
-      ref.respondNext('sendAll', batchResponse);
-      var result = ref.sendAll(messages);
-      ref.flush();
+      mockMessaging.respondNext('sendAll', batchResponse);
+      var result = mockMessaging.sendAll(messages);
+      mockMessaging.flush();
       result.then(function (response) {
         console.assert(response === batchResponse, 'custom batch response is returned');
       });
@@ -103,11 +108,11 @@ describe('API.md', () => {
           body: 'foobar'
         }
       };
-      ref.on('send', function(args) {
-        console.assert(args[0] === message, 'message argument is coorect');
+      mockMessaging.on('send', function(args) {
+        console.assert(args[0] === message, 'message argument is correct');
       });
-      ref.send(message);
-      ref.flush();
+      mockMessaging.send(message);
+      mockMessaging.flush();
     });
   });
 });
