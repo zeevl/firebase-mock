@@ -8,6 +8,7 @@ var removeEmptyFirestoreProperties = require('../../src/utils').removeEmptyFires
 var updateToRtdbObject = require('../../src/utils').updateToRtdbObject;
 var updateToFirestoreObject = require('../../src/utils').updateToFirestoreObject;
 var Timestamp = require('../../src/timestamp');
+var priorityComparator = require('../../src/utils').priorityComparator;
 
 describe('utils', function () {
   describe('removeEmptyRtdbProperties', function () {
@@ -168,6 +169,45 @@ describe('utils', function () {
           }
         }
       });
+    });
+  });
+
+  describe('priorityComparator', function() {
+    // https://firebase.google.com/docs/database/web/lists-of-data#data-order
+    it('should give no priority to equal items', function() {
+      expect(priorityComparator('a', 'a')).to.eql(0);
+    });
+    it('should order null items first', function() {
+      expect(priorityComparator(null, 0)).to.eql(-1);
+      expect(priorityComparator(0, null)).to.eql(1);
+    });
+    it('should order false before true', function() {
+      expect(priorityComparator(false, true)).to.eql(-1);
+      expect(priorityComparator(true, false)).to.eql(1);
+    });
+    it('should order booleans before numbers', function() {
+      expect(priorityComparator(false, 0)).to.eql(-1);
+      expect(priorityComparator(true, 1)).to.eql(-1);
+      expect(priorityComparator(0, false)).to.eql(1);
+      expect(priorityComparator(1, true)).to.eql(1);
+    });
+    it('should order numbers before strings', function() {
+      expect(priorityComparator(5, 'foo')).to.eql(-1);
+      expect(priorityComparator(3, '3')).to.eql(-1);
+      expect(priorityComparator('foo', 0)).to.eql(1);
+      expect(priorityComparator('10', 10)).to.eql(1);
+    });
+    it('should order numbers in ascending order', function() {
+      expect(priorityComparator(4,5)).to.eql(-1);
+      expect(priorityComparator(5,4)).to.eql(1);
+      expect(priorityComparator(1,10)).to.eql(-1);
+      expect(priorityComparator(10,1)).to.eql(1);
+    });
+    it('should order strings lexicographically', function() {
+      expect(priorityComparator('bar', 'foo')).to.eql(-1);
+      expect(priorityComparator('foo', 'bar')).to.eql(1);
+      expect(priorityComparator('ant', 'art')).to.eql(-1);
+      expect(priorityComparator('art', 'ant')).to.eql(1);
     });
   });
 });

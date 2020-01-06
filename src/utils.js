@@ -63,15 +63,21 @@ exports.priAndKeyComparator = function priAndKeyComparator(testPri, testKey, val
 };
 
 exports.priorityComparator = function priorityComparator(a, b) {
+  // https://firebase.google.com/docs/database/web/lists-of-data#data-order
   if (a !== b) {
     if (a === null || b === null) {
       return a === null ? -1 : 1;
     }
-    if (typeof a !== typeof b) {
-      return typeof a === 'number' ? -1 : 1;
-    } else {
-      return a > b ? 1 : -1;
+    if(typeof a === 'boolean' && typeof b === 'boolean') {
+      return !a ? -1 : 1;
     }
+    if (typeof a !== typeof b) {
+      if(typeof a === 'boolean' || typeof b === 'boolean') {
+        return typeof a === 'boolean' ? -1 : 1;
+      }
+      return typeof a === 'number' ? -1 : 1;
+    }
+    return a > b ? 1 : -1;
   }
   return 0;
 };
@@ -127,12 +133,19 @@ exports.removeEmptyRtdbProperties = function removeEmptyRtdbProperties(obj) {
   }
 };
 
-exports.removeEmptyFirestoreProperties = function removeEmptyFirestoreProperties(obj, serverTime) {
+exports.removeEmptyFirestoreProperties = function removeEmptyFirestoreProperties(obj, current, serverTime) {
   if (!_.isPlainObject(obj)) {
     return obj;
   }
 
   var keys = getKeys(obj);
+
+  const doArrayRemove = function(replacement, sub) {
+    return current[sub].filter(function(e) {
+      return replacement.indexOf(e) === -1;
+    });
+  };
+
   if (keys.length > 0) {
     for (var s in obj) {
       var value = removeEmptyFirestoreProperties(obj[s], serverTime);
@@ -142,6 +155,14 @@ exports.removeEmptyFirestoreProperties = function removeEmptyFirestoreProperties
         obj[s] = new Date(serverTime);
       } else if (value instanceof Timestamp) {
         obj[s] = value.toDate();
+      }
+      if (FieldValue.arrayRemove().isEqual(value)) {
+        const replacement = Array.isArray(value.arg) ? value.arg : [value.arg];
+        obj[s] = doArrayRemove(replacement, s);
+      }
+      if (FieldValue.arrayUnion().isEqual(value)) {
+        const replacement = Array.isArray(value.arg) ? value.arg : [value.arg];
+        obj[s] = _.union(current[s], replacement);
       }
     }
   }
