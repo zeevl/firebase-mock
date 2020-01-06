@@ -10,6 +10,7 @@ chai.use(require('sinon-chai'));
 var expect = chai.expect;
 var _ = require('../../src/lodash');
 var Firestore = require('../../').MockFirestore;
+var Timestamp = require('../../src/timestamp');
 
 describe('MockFirestoreCollection', function () {
 
@@ -391,6 +392,66 @@ describe('MockFirestoreCollection', function () {
         done();
       }).catch(done);
     });
+
+    it('returns documents ordered by timestamp', function(done) {
+      db.collection('group').doc().create({
+        name: 'a',
+        date: Timestamp.fromMillis(1000)
+      }).catch(done);
+      db.flush();
+      db.collection('group').add({
+        name: 'b',
+        date: Timestamp.fromMillis(2000)
+      }).catch(done);
+      db.flush();
+
+      db.collection('group').orderBy('date', 'asc').get().then(function (snap) {
+        expect(snap.size).to.equal(2);
+        expect(snap.docs[0].data().name).to.equal('a');
+        expect(snap.docs[0].data().date).to.have.property('seconds');
+        expect(snap.docs[1].data().name).to.equal('b');
+        expect(snap.docs[1].data().date).to.have.property('seconds');
+
+        db.collection('group').orderBy('date', 'desc').get().then(function (snap) {
+          expect(snap.size).to.equal(2);
+          expect(snap.docs[0].data().name).to.equal('b');
+          expect(snap.docs[1].data().name).to.equal('a');
+          done();
+        }).catch(done);
+        db.flush();
+      }).catch(done);
+      db.flush();
+    });
+
+    it('returns documents ordered by date', function(done) {
+      db.collection('group').doc().create({
+        name: 'a',
+        date: new Date(1000)
+      }).catch(done);
+      db.flush();
+      db.collection('group').add({
+        name: 'b',
+        date: new Date(2000)
+      }).catch(done);
+      db.flush();
+
+      db.collection('group').orderBy('date', 'asc').get().then(function (snap) {
+        expect(snap.size).to.equal(2);
+        expect(snap.docs[0].data().name).to.equal('a');
+        expect(snap.docs[0].data().date).to.have.property('seconds');
+        expect(snap.docs[1].data().name).to.equal('b');
+        expect(snap.docs[1].data().date).to.have.property('seconds');
+
+        db.collection('group').orderBy('date', 'desc').get().then(function (snap) {
+          expect(snap.size).to.equal(2);
+          expect(snap.docs[0].data().name).to.equal('b');
+          expect(snap.docs[1].data().name).to.equal('a');
+          done();
+        }).catch(done);
+        db.flush();
+      }).catch(done);
+      db.flush();
+    });
   });
 
   describe('#startAfter', function () {
@@ -477,11 +538,11 @@ describe('MockFirestoreCollection', function () {
         snap.docs.forEach(function(doc) {
           names.push(doc.data().name);
         });
-        
+
         if (callCount === 2) {
           expect(names).to.contain('A');
           expect(names).not.to.contain('a');
-          done();  
+          done();
         }
       });
       collection.doc('a').update({name: 'A'}, {setMerge: true});
@@ -523,7 +584,7 @@ describe('MockFirestoreCollection', function () {
 
       collection.doc('a').update({name: 'A'}, {setMerge: true});
       collection.flush();
-      
+
       process.nextTick(function() {
         expect(callCount).to.equal(2);
 
@@ -537,7 +598,7 @@ describe('MockFirestoreCollection', function () {
           done();
         });
       });
-      
+
 
     });
 
