@@ -30,6 +30,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   characters
 - Boolean values are now allowed in RTDB priority fields and as
   arguments to `Query.startAt`, `Query.endAt`, and `Query.equalTo`.
+- `MockFirestoreDocument.create()` now correctly returns a
+  `Promise<WriteResult>` instead of `Promise<void>`.
 
 
 [Unreleased]: https://github.com/dmurvihill/firebase-mock/compare/v2.2.10...HEAD
