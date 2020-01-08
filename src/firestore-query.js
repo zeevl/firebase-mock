@@ -268,7 +268,7 @@ MockFirestoreQuery.prototype._results = function () {
   if (this.orderedProperties.length === 0) {
     _.forEach(this.data, function(data, key) {
       if (inRange(data, key) && (self.limited <= 0 || limit < self.limited)) {
-        results[key] = _.cloneDeep(data);
+        results[key] = _.cloneDeepWith(data, utils.cloneCustomizer);
         limit++;
       }
     });
@@ -285,7 +285,7 @@ MockFirestoreQuery.prototype._results = function () {
     queryable = _.orderBy(queryable, orderBy, self.orderedDirections);
     queryable.forEach(function(q) {
       if (inRange(q.data, q.key) && (self.limited <= 0 || limit < self.limited)) {
-        results[q.key] = _.cloneDeep(q.data);
+        results[q.key] = _.cloneDeepWith(q.data, utils.cloneCustomizer);
         limit++;
       }
     });

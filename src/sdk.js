@@ -5,6 +5,7 @@ var MockFieldPath = require('./firestore-field-path');
 var MockFieldValue = require('./firestore-field-value');
 var MockMessaging = require('./messaging');
 var MockStorage = require('./storage');
+var MockTimestamp = require('./timestamp');
 
 var EmailAuthProvider = function() {
   this.providerId = EmailAuthProvider.PROVIDER_ID;
@@ -79,6 +80,7 @@ function MockFirebaseSdk(createDatabase, createAuth, createFirestore, createStor
   }
   MockFirebaseFirestore.FieldPath = MockFieldPath;
   MockFirebaseFirestore.FieldValue = MockFieldValue;
+  MockFirebaseFirestore.Timestamp = MockTimestamp;
 
   function MockFirebaseStorage() {
     return createStorage ? createStorage() : new MockStorage();
