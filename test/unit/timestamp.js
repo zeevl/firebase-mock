@@ -20,6 +20,13 @@ describe('Timestamp', function () {
       expect(timestamp.nanoseconds).to.equal(123000000);
     });
   });
+  describe('now', function () {
+    it('should create a current Timestamp', function () {
+      var now = new Date();
+      var timestamp = Timestamp.now();
+      expect(timestamp.toDate().getTime()).to.equal(now.getTime());
+    });
+  });
   describe('#toDate', function () {
     it('should convert to date', function () {
       var ts = new Timestamp(1234567890, 123456789);

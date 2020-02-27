@@ -15,6 +15,10 @@ Timestamp.fromMillis = function(ms) {
   return new Timestamp(sec, ns);
 };
 
+Timestamp.now = function() {
+  return Timestamp.fromDate(new Date());
+};
+
 Timestamp.prototype.toDate = function () {
   var millis = this.seconds * 1000 + this.nanoseconds / (1000 * 1000);
   return new Date(millis);
