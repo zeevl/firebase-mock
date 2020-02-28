@@ -267,6 +267,7 @@ MockFirestoreDocument.prototype.getCollections = function () {
     });
   });
 };
+MockFirestoreDocument.prototype.listCollections = MockFirestoreDocument.prototype.getCollections;
 
 MockFirestoreDocument.prototype._hasChild = function (key) {
   return _.isObject(this.data) && _.has(this.data, key);
