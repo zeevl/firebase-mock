@@ -5,6 +5,14 @@ var sinon    = require('sinon');
 var Timestamp = require('../../src/timestamp');
 
 describe('Timestamp', function () {
+  var clock;
+  beforeEach(function () {
+    clock = sinon.useFakeTimers();
+  });
+  afterEach(function () {
+    clock.restore();
+  });
+
   describe('fromDate', function () {
     it('should convert from date', function () {
       var date = new Date('2009-02-13T23:31:30.123456789Z');
