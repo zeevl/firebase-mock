@@ -11,6 +11,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   behavior of `onAuthStateChanged()` (see below)
 - Support for Firebase Messaging (Admin API)
 - Support for [FieldValue.increment](https://firebase.google.com/docs/reference/js/firebase.firestore.FieldValue#increment)
+- Support for [firestore.Timestamp.now()](https://firebase.google.com/docs/reference/js/firebase.firestore.Timestamp#now)
 - Support for `listCollections` in [DocumentReferences](https://googleapis.dev/nodejs/firestore/latest/DocumentReference.html#listCollections)
 
 ### Changed
