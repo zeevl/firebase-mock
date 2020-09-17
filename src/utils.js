@@ -4,7 +4,6 @@ var Snapshot = require('./snapshot');
 var Timestamp = require('./timestamp');
 var FieldValue = require('./firestore-field-value');
 var _ = require('./lodash');
-const { replace } = require('sinon');
 
 exports.makeRefSnap = function makeRefSnap(ref) {
   return new Snapshot(ref, ref.getData(), ref.priority);
